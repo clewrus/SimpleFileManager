@@ -3,47 +3,242 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+	  xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+
       xmlns:local="clr-namespace:SimpleFM.Pages"
+	  xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      xmlns:modelCovers="clr-namespace:SimpleFM.ModelCovers"
+	  xmlns:commands="clr-namespace:SimpleFM.Commands"
+	  xmlns:converters="clr-namespace:SimpleFM.Converters"
+
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="FileManagerPage">
 
-    <Grid>
+	<Page.Resources>
+		<CompositeCollection x:Key="InspectorContent">
+			<CollectionContainer Collection="{Binding Path=DataContext.FocusedTreeNode.ParentNodeCollection, Source={x:Reference DirectoryInspector}}"/>
+			<CollectionContainer Collection="{Binding Path=DataContext.FocusedTreeNode.ChildDirectoryNodes, Source={x:Reference DirectoryInspector}}"/>
+			<CollectionContainer Collection="{Binding Path=DataContext.FocusedTreeNode.ChildFileNodes, Source={x:Reference DirectoryInspector}}"/>
+		</CompositeCollection>
+
+		<converters:MultiParameterConverter x:Key="MultiParameterConverter"/>
+
+		<Style x:Key="ElementTextBoxStyle" TargetType="{x:Type TextBox}">
+			<Style.Triggers>
+				<Trigger Property="IsReadOnly" Value="True" >
+					<Setter Property="Cursor" Value="Arrow"/>
+					<Setter Property="BorderBrush" Value="Transparent"/>
+					<Setter Property="Focusable" Value="False"/>
+				</Trigger>
+			</Style.Triggers>
+		</Style>
+
+		<ContextMenu x:Key="NavigationTreeContextMenu">
+			<MenuItem Header="Copy" Command="{Binding Copy}" CommandParameter="{Binding SelectedItem, Source={x:Reference NavigationTree}}" InputGestureText="Ctrl+C"/>
+			<MenuItem Header="Paste" Command="{Binding Paste}" CommandParameter="{Binding SelectedItem, Source={x:Reference NavigationTree}}" InputGestureText="Ctrl+V"/>
+			<Separator/>
+			<MenuItem Header="Rename" Command="{Binding InitiateRename}" CommandParameter="{Binding SelectedItem, Source={x:Reference NavigationTree}}"/>
+			<Separator/>
+			<MenuItem Header="Remove" Command="{Binding Remove}" CommandParameter="{Binding SelectedItem, Source={x:Reference NavigationTree}}"/>
+		</ContextMenu>
+
+		<ContextMenu x:Key="DirectoryInspectorContextMenu">
+			<MenuItem Header="Update" Command="{Binding UpdateCommand}" CommandParameter=""/>
+			<Separator/>
+			<MenuItem Header="Create folder" Command="{Binding CreateFolder}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
+			<MenuItem Header="Create file" Command="{Binding CreateFile}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
+			<Separator/>
+			<MenuItem Header="Copy" Command="{Binding Copy}" CommandParameter="{Binding SelectedItem, Source={x:Reference DirectoryInspector}}" InputGestureText="Ctrl+C"/>
+			<MenuItem Header="Paste" Command="{Binding Paste}" CommandParameter="InspectorPaste" InputGestureText="Ctrl+V"/>
+			<Separator/>
+			<MenuItem Header="Rename" Command="{Binding InitiateRename}" CommandParameter="{Binding SelectedItem, Source={x:Reference DirectoryInspector}}"/>
+			<Separator/>
+			<MenuItem Header="Remove" Command="{Binding Remove}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
+		</ContextMenu>
+
+	</Page.Resources>
+
+	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*" MinWidth="100"/>
 			<ColumnDefinition Width="2*" MinWidth="200"/>
 		</Grid.ColumnDefinitions>
 
-		<ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-			<DockPanel>
-				<ComboBox Name="ChoseDiskComboBox" DockPanel.Dock="Top" Background="White">
-					<ComboBoxItem>D:</ComboBoxItem>
-					<ComboBoxItem>C:</ComboBoxItem>
-				</ComboBox>
-				<TreeView DockPanel.Dock="Bottom">
+		<DockPanel Grid.Column="0">
+			<ComboBox Name="ChoseDiskComboBox" 
+					DockPanel.Dock="Top"
+					Background="White"
+					DisplayMemberPath="ElementName" 
+					ItemsSource="{Binding AvailableDrives}"
+					SelectedItem="{Binding RootDirectory, Mode=TwoWay}"/>
 
-				</TreeView>
-			</DockPanel>
-		</ScrollViewer>
+			<TreeView Name="NavigationTree" DockPanel.Dock="Bottom"
+				ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+				ItemsSource="{Binding FileSystemTree.ExtraRootNode.ChildDirectoryNodes}"
+				ContextMenu="{StaticResource NavigationTreeContextMenu}">
+
+				<TreeView.ItemContainerStyle>
+					<Style TargetType="{x:Type TreeViewItem}">
+						<Style.Setters>
+							<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+						</Style.Setters>
+					</Style>
+				</TreeView.ItemContainerStyle>
+
+				<i:Interaction.Triggers>
+					<i:EventTrigger EventName="SelectedItemChanged">
+						<i:InvokeCommandAction Command="{Binding OpenElement}" CommandParameter="{Binding SelectedItem, ElementName=NavigationTree}"/>
+					</i:EventTrigger>
+				</i:Interaction.Triggers>
+
+				<TreeView.ItemTemplate>
+					<HierarchicalDataTemplate DataType="{x:Type modelCovers:FileTreeNode}" ItemsSource="{Binding ChildDirectoryNodes}">
+						<TextBox Text="{Binding Value.ElementName, Mode=OneWay}" IsReadOnly="{Binding NotRenaming, Mode=OneWay}" Cursor="Arrow" Style="{StaticResource ElementTextBoxStyle}"/>
+					</HierarchicalDataTemplate>
+				</TreeView.ItemTemplate>
+			</TreeView>
+		</DockPanel>
 
 		<GridSplitter Grid.Column="0" Background="Gray" Width="1" HorizontalAlignment="Right" VerticalAlignment="Stretch"/>
-
-		<ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-			<DockPanel>
-				<DockPanel DockPanel.Dock="Top" Height="{Binding ElementName=ChoseDiskComboBox, Path=ActualHeight}">
-					<Button DockPanel.Dock="Right" Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ActualHeight}">
-						<Path Data="M 0, 0L 4,0 M 0,1 L 4,1 M 0,2 L 4,2" Stroke="#999999" StrokeThickness="2" Stretch="Uniform"/>
+		<DockPanel Grid.Column="1">
+			<DockPanel DockPanel.Dock="Top" Height="{Binding ElementName=ChoseDiskComboBox, Path=ActualHeight}">
+				<StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+					<Label Visibility="Collapsed" Name="ButtonIdentifier" Content="Stop_search"/>
+					<Button Command="{Binding SearchElement}" Width="45" Content="{Binding ActionOnSearchCommand, Mode=TwoWay}">
+						<Button.CommandParameter>
+							<MultiBinding Converter="{StaticResource MultiParameterConverter}">
+								<Binding Path="Content" ElementName="ButtonIdentifier"/>
+								<Binding Path="Text" ElementName="SearchString"/>
+								<Binding Path="IsChecked" ElementName="searchSettings_curDir"/>
+								<Binding Path="IsChecked" ElementName="searchSettings_recursive"/>
+								<Binding Path="IsChecked" ElementName="searchSettings_fileContent"/>
+								<Binding Path="IsChecked" ElementName="searchSettings_caseSensetive"/>
+							</MultiBinding>
+						</Button.CommandParameter>
 					</Button>
+					<Button Name="SearchFilterButton" Width="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ActualHeight}">
+						<Button.Content>
+							<Path Data="M 0, 0L 4,0 M 0,1 L 4,1 M 0,2 L 4,2" Stroke="#999999" StrokeThickness="2" Stretch="Uniform"/>
+						</Button.Content>
 
-					<TextBox DockPanel.Dock="Left" Grid.Column="0" VerticalContentAlignment="Center"/>
-				</DockPanel>
+						<Button.ContextMenu>
+							<ContextMenu x:Name="MainContextMenu">
+								<MenuItem Header="Search in current directory">
+									<MenuItem.Icon>
+										<RadioButton Name="searchSettings_curDir" GroupName="SearchRange" IsChecked="True"/>
+									</MenuItem.Icon>
+								</MenuItem>
+								<MenuItem Header="Search in subdirectories">
+									<MenuItem.Icon>
+										<RadioButton Name="searchSettings_recursive" GroupName="SearchRange" IsChecked="False"/>
+									</MenuItem.Icon>
+								</MenuItem>
+								<Separator/>
+								<MenuItem Header="Consider files content">
+									<MenuItem.Icon>
+										<CheckBox Name="searchSettings_fileContent" IsChecked="False"/>
+									</MenuItem.Icon>
+								</MenuItem>
+								<MenuItem Header="Case sensetive">
+									<MenuItem.Icon>
+										<CheckBox Name="searchSettings_caseSensetive" IsChecked="False"/>
+									</MenuItem.Icon>
+								</MenuItem>
+							</ContextMenu>
+						</Button.ContextMenu>
 
-				<ListView>
-				</ListView>
+						<Button.Triggers>
+							<EventTrigger SourceName="SearchFilterButton" RoutedEvent="Button.Click">
+								<BeginStoryboard>
+									<Storyboard>
+										<ObjectAnimationUsingKeyFrames Storyboard.TargetName="MainContextMenu" Storyboard.TargetProperty="(ContextMenu.IsOpen)">
+											<DiscreteObjectKeyFrame KeyTime="0:0:0">
+												<DiscreteObjectKeyFrame.Value>
+													<sys:Boolean>True</sys:Boolean>
+												</DiscreteObjectKeyFrame.Value>
+											</DiscreteObjectKeyFrame>
+										</ObjectAnimationUsingKeyFrames>
+									</Storyboard>
+								</BeginStoryboard>
+							</EventTrigger>
+						</Button.Triggers>
+					</Button>
+				</StackPanel>
+				<TextBox Name="SearchString" DockPanel.Dock="Left" Grid.Column="0" VerticalContentAlignment="Center">
+					<i:Interaction.Triggers>
+						<i:EventTrigger EventName="TextChanged" SourceName="SearchString">
+							<i:InvokeCommandAction Command="{Binding SearchElement}">
+								<i:InvokeCommandAction.CommandParameter>
+									<MultiBinding Converter="{StaticResource MultiParameterConverter}">
+										<Binding Path="Text" ElementName="SearchString"/>
+										<Binding Path="Text" ElementName="SearchString"/>
+										<Binding Path="IsChecked" ElementName="searchSettings_curDir"/>
+										<Binding Path="IsChecked" ElementName="searchSettings_recursive"/>
+										<Binding Path="IsChecked" ElementName="searchSettings_fileContent"/>
+										<Binding Path="IsChecked" ElementName="searchSettings_caseSensetive"/>
+									</MultiBinding>
+								</i:InvokeCommandAction.CommandParameter>
+							</i:InvokeCommandAction>
+						</i:EventTrigger>
+					</i:Interaction.Triggers>
+				</TextBox>
 			</DockPanel>
 
-			
-		</ScrollViewer>
+			<DataGrid Name="DirectoryInspector"
+					AutoGenerateColumns="False"
+					ItemsSource="{StaticResource ResourceKey=InspectorContent}"
+					BorderBrush="AliceBlue"
+					RowHeaderWidth="0"
+					HorizontalGridLinesBrush="Transparent"
+					VerticalGridLinesBrush="AliceBlue"
+					CanUserResizeRows="False"
+					Background="White"
+					IsReadOnly="True"
+					ContextMenu="{StaticResource DirectoryInspectorContextMenu}">
 
+				<i:Interaction.Triggers>
+					<i:EventTrigger EventName="MouseDoubleClick">
+						<i:InvokeCommandAction Command="{Binding OpenElement}" CommandParameter="{Binding SelectedItem, ElementName=DirectoryInspector}"/>
+					</i:EventTrigger>
+
+					<i:EventTrigger EventName="SelectionChanged">
+						<i:InvokeCommandAction Command="{Binding RenamingFault}" CommandParameter=""/>
+					</i:EventTrigger>
+				</i:Interaction.Triggers>
+
+				<DataGrid.CellStyle>
+					<Style TargetType="DataGridCell">
+						<Style.Setters>
+							<Setter Property="BorderBrush" Value="Transparent"/>
+							<Setter Property="Background" Value="White"/>
+							<Setter Property="Foreground" Value="Black"/>
+						</Style.Setters>
+
+						<Style.Triggers>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter Property="Background" Value="LightBlue"/>
+							</Trigger>
+						</Style.Triggers>
+					</Style>
+				</DataGrid.CellStyle>
+
+				<DataGrid.Columns>
+					<DataGridTemplateColumn Header="Name" Width="200">
+						<DataGridTemplateColumn.CellTemplate>
+							<DataTemplate DataType="{x:Type TextBox}">
+								<TextBox Text="{Binding Value.ElementName, Mode=OneWay}" IsReadOnly="{Binding NotRenaming, Mode=OneWay}" Style="{StaticResource ElementTextBoxStyle}">
+									<TextBox.InputBindings>
+										<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Enter"/>
+										<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Return"/>
+									</TextBox.InputBindings>
+								</TextBox>
+							</DataTemplate>
+						</DataGridTemplateColumn.CellTemplate>
+					</DataGridTemplateColumn>
+					<DataGridTextColumn Header="Type" Binding="{Binding Value.ElementType}" Foreground="Gray"/>
+				</DataGrid.Columns>
+			</DataGrid>
+		</DockPanel>
 	</Grid>
 </Page>
