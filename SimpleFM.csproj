@@ -70,6 +70,7 @@
     <Compile Include="ModelCovers\SearchNode.cs" />
     <Compile Include="ModelCovers\SearchTree.cs" />
     <Compile Include="ModelCovers\SFMDirectory.cs" />
+    <Compile Include="ModelCovers\SFMEventArgs.cs" />
     <Compile Include="ModelCovers\SFMFile.cs" />
     <Compile Include="Commands\ViewModelCommand.cs" />
     <Compile Include="ModelCovers\SFMParentDirectory.cs" />

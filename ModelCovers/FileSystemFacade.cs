@@ -11,21 +11,11 @@ using System.Windows;
 using System.Diagnostics;
 
 namespace SimpleFM.ModelCovers {
-	public class FileSystemFacade : INotifyPropertyChanged {
+	public class FileSystemFacade {
 		private FileSystemFacade () { }
 
-		private void SetProperty<T> (ref T storage, T value, [CallerMemberName] string caller = "") {
-			if (!EqualityComparer<T>.Default.Equals(storage, value)) {
-				PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(caller));
-
-				storage = value;
-
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
-			}
-		}
-
 		internal void OnTreeNodeDelete (FileTreeNode node) {
-			OnElementDelete?.Invoke(node.Value);
+			ElementDeleted?.Invoke(node, new SFMEventArgs() { element = node.Value });
 		}
 
 		public DynamicFileSystemTree CreateFileSystemTree (SFMDirectory rootDirectory) {
@@ -109,7 +99,22 @@ namespace SimpleFM.ModelCovers {
 				selectedName = $"New file{counter++}.txt";
 			}
 
-			File.Create(Path.Combine(parentDirectory, selectedName));
+			File.Create(Path.Combine(parentDirectory, selectedName)).Close();
+		}
+
+		public bool ClipboardContainsElementPath () {
+			var dataObject = Clipboard.GetDataObject();
+			if (!dataObject.GetDataPresent(DataFormats.FileDrop)) return false;
+			string[] sourcePathes = (string[])dataObject.GetData(DataFormats.FileDrop);
+
+			if (sourcePathes == null || sourcePathes.Length == 0) return false;
+			foreach (var path in sourcePathes) {
+				if (File.Exists(path) || Directory.Exists(path)) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		public void PasteFromClipboardToDirectory (SFMDirectory targetDirectory) {
@@ -154,41 +159,41 @@ namespace SimpleFM.ModelCovers {
 		}
 
 		public void CopyDirectoryTo (SFMDirectory source, SFMDirectory target, List<(string, string)> exeptionLogs) {
-			DirectoryInfo sourceInfo = new DirectoryInfo(source.ElementPath);
-			if (!sourceInfo.Exists) {
+			if (!Directory.Exists(source.ElementPath)) {
 				throw new Exception($"{source.ElementName} directory doesn't exist");
 			}
 
-			var directoryPath = Path.Combine(target.ElementPath, source.ElementName);
-			if (!Directory.Exists(directoryPath)) {
+			var operationQueue = new Queue<(string, string)>();
+			AddChildElementToCopyQueue(source.ElementPath, target.ElementPath, operationQueue);
+
+			while (operationQueue.Count > 0) {
+				var curOp = operationQueue.Dequeue();
 				try {
-					Directory.CreateDirectory(directoryPath);
+					if (curOp.Item1 == null) {
+						Directory.CreateDirectory(curOp.Item2);
+					} else {
+						File.Copy(curOp.Item1, curOp.Item2);
+					}
 				} catch (Exception e) {
-					exeptionLogs.Add((target.ElementName, e.Message));
-					return;
+					exeptionLogs.Add((Path.GetFileName(curOp.Item2), e.Message));
 				}
-			}
-
-			DirectoryInfo[] childDirectories = sourceInfo.GetDirectories();
-			FileInfo[] childFiles = sourceInfo.GetFiles();
-
-			foreach (var fileInfo in childFiles) {
-				try {
-					fileInfo.CopyTo(Path.Combine(directoryPath, fileInfo.Name));
-				} catch (Exception e) {
-					exeptionLogs.Add((fileInfo.Name, e.Message));
-				}
-			}
-
-			foreach (var directoryInfo in childDirectories) {
-				var nwSource = new SFMDirectory(directoryInfo.FullName);
-				var nwTarget = new SFMDirectory(Path.Combine(target.ElementPath, directoryInfo.Name));
-				CopyDirectoryTo(nwSource, nwTarget, exeptionLogs);
 			}
 		}
 
-		public event PropertyChangedEventHandler PropertyChanged;
-		public event PropertyChangingEventHandler PropertyChanging;
+		private void AddChildElementToCopyQueue (string sourcePath, string targetPath, Queue<(string, string)> queue) {
+			string pastedDirectoryPath = Path.Combine(targetPath, Path.GetFileName(sourcePath));
+			queue.Enqueue((null, pastedDirectoryPath));
+
+			string[] childFiles = Directory.GetFiles(sourcePath);
+			foreach (var childFile in childFiles) {
+				queue.Enqueue((childFile, Path.Combine(pastedDirectoryPath, Path.GetFileName(childFile)) ));
+			}
+
+			string[] childDirs = Directory.GetDirectories(sourcePath);
+			foreach (var childDir in childDirs) {
+				AddChildElementToCopyQueue(childDir, pastedDirectoryPath, queue);
+			}
+		}
 
 		public static FileSystemFacade _Instance;
 		public static FileSystemFacade Instance {
@@ -201,7 +206,7 @@ namespace SimpleFM.ModelCovers {
 		}
 
 		public enum ElementType { Directory, File }
-		public event Action<IFileSystemElement> OnElementDelete;
+		public event EventHandler<SFMEventArgs> ElementDeleted;
 
 		public FileTreeNode CurrentRenamingNode { get; private set; }
 	}

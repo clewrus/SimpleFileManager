@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SimpleFM.ModelCovers {
-	public class FileTreeNode : INotifyPropertyChanged {
+	public class FileTreeNode : INotifyPropertyChanged, IDisposable {
 		protected FileTreeNode (DynamicFileSystemTree tree) {
 			this.Tree = tree;
 			this.NotRenaming = true;
@@ -41,6 +41,45 @@ namespace SimpleFM.ModelCovers {
 			}
 		}
 
+		~FileTreeNode () {
+			Dispose(false);
+		}
+
+		public void Dispose () {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose (bool disposing) {
+			if (_FileWatcher != null) {
+				_FileWatcher.Dispose();
+				_FileWatcher = null;
+			}
+
+			DisposeObservableCollections();
+		}
+
+		internal void DisposeObservableCollections () {
+			if (ChildDirectoryNodes != null) {
+				foreach (var child in ChildDirectoryNodes) {
+					child.Dispose();
+				}
+				try {
+					ChildDirectoryNodes.Clear();
+				} catch (NotSupportedException) { }
+				
+			}
+
+			if (ChildFileNodes != null) {
+				foreach (var child in ChildFileNodes) {
+					child.Dispose();
+				}
+				try {
+					ChildFileNodes.Clear();
+				} catch (NotSupportedException) { }
+			}
+		}
+
 		private void SetIsUpdatingToIsExpanding (object obj, PropertyChangedEventArgs args) {
 			if (obj == this && args.PropertyName == "IsExpanded") {
 				IsUpdating = IsExpanded;
@@ -54,7 +93,14 @@ namespace SimpleFM.ModelCovers {
 			if (!IsDirectory) return;
 			ChildrenInitialized = false;
 
+			foreach (var child in ChildDirectoryNodes) {
+				child.Dispose();
+			}
 			ChildDirectoryNodes.Clear();
+			
+			foreach (var child in ChildFileNodes) {
+				child.Dispose();
+			}
 			ChildFileNodes.Clear();
 
 			LoadChildren();
@@ -72,7 +118,7 @@ namespace SimpleFM.ModelCovers {
 			if (ChildrenInitialized) return;
 
 			CreateChildNodesCollection();
-			StartFillindChildNodesCollections();
+			StartFillingChildNodesCollections();
 		}
 
 		#region Initialization
@@ -81,7 +127,7 @@ namespace SimpleFM.ModelCovers {
 			ChildFileNodes = new ObservableCollection<FileTreeNode>();
 		}
 
-		private void StartFillindChildNodesCollections () {
+		private void StartFillingChildNodesCollections () {
 			Task.Run(() => FillChildNodesCollections());
 
 			ChildrenInitialized = true;
@@ -104,7 +150,7 @@ namespace SimpleFM.ModelCovers {
 
 			string[] files = await fileTask;
 			string[] directories = await directoryTask;
-			App.Current.Dispatcher.Invoke((Action)(async () => {
+			await App.Current.Dispatcher.BeginInvoke((Action)(() => {
 				foreach (var file in files) {
 					ChildFileNodes.Add(new FileTreeNode(Tree, this, new SFMFile(file)));
 				}
@@ -117,31 +163,6 @@ namespace SimpleFM.ModelCovers {
 		#endregion
 
 		#region TreeNodeUpdating
-		internal void ClearObservableCollections () {
-			if (ChildFileNodes != null) {
-				foreach (var child in ChildFileNodes) {
-					child.ClearObservableCollections();
-				}
-				ChildFileNodes.Clear();
-			}
-
-			if (ChildDirectoryNodes != null) {
-				foreach (var child in ChildDirectoryNodes) {
-					child.ClearObservableCollections();
-				}
-				ChildDirectoryNodes.Clear();
-			}
-		}
-
-		internal void DisposeWatcher () {
-			FileWatcher?.Dispose();
-
-			if (ChildDirectoryNodes == null) return;
-			foreach (var child in ChildDirectoryNodes) {
-				child.DisposeWatcher();
-			}
-		}
-
 		internal void SetUpdating (bool value) {
 			IsUpdating = IsDirectory && value;
 
@@ -166,19 +187,19 @@ namespace SimpleFM.ModelCovers {
 		}
 
 		private void BindToFileWatcherEvents (FileSystemWatcher watcher) {
-			watcher.Deleted += OnDelete;
-			watcher.Renamed += OnRename;
-			watcher.Changed += OnChanged;
+			watcher.Deleted += ElementDeleatedHandler;
+			watcher.Renamed += ElementRenamedHandler;
+			watcher.Changed += ElementChangedHandler;
 
-			watcher.Created += OnCreated;
+			watcher.Created += ElementCreatedHandler;
 		}
 
 		private void UnBindToFileWatcherEvents (FileSystemWatcher watcher) {
-			watcher.Deleted -= OnDelete;
-			watcher.Renamed -= OnRename;
-			watcher.Changed -= OnChanged;
+			watcher.Deleted -= ElementDeleatedHandler;
+			watcher.Renamed -= ElementRenamedHandler;
+			watcher.Changed -= ElementChangedHandler;
 
-			watcher.Created -= OnCreated;
+			watcher.Created -= ElementCreatedHandler;
 		}
 
 		private FileTreeNode FindNodeInCollection (out ObservableCollection<FileTreeNode> collection, IFileSystemElement elem) {
@@ -215,7 +236,7 @@ namespace SimpleFM.ModelCovers {
 			}
 		}
 
-		private async void OnDelete (object source, FileSystemEventArgs e) {
+		private async void ElementDeleatedHandler (object source, FileSystemEventArgs e) {
 			if (!ChildrenInitialized) return;
 
 			await App.Current.Dispatcher.BeginInvoke((Action)(() => RemoveChildFromNode(new SFMFile(e.FullPath))));
@@ -224,7 +245,7 @@ namespace SimpleFM.ModelCovers {
 			Console.WriteLine("File was removed: " + e.FullPath);
 		}
 
-		private void OnCreated (object source, FileSystemEventArgs e) {
+		private void ElementCreatedHandler (object source, FileSystemEventArgs e) {
 			if (!ChildrenInitialized) return;
 
 			IFileSystemElement element = FileSystemFacade.Instance.GetElementFromPath(e.FullPath);
@@ -233,7 +254,7 @@ namespace SimpleFM.ModelCovers {
 			Console.WriteLine("File was created: " + e.FullPath);
 		}
 
-		private void OnRename (object source, RenamedEventArgs e) {
+		private void ElementRenamedHandler (object source, RenamedEventArgs e) {
 			if (!ChildrenInitialized) return;
 
 			IFileSystemElement element = FileSystemFacade.Instance.GetElementFromPath(e.FullPath);
@@ -251,7 +272,7 @@ namespace SimpleFM.ModelCovers {
 			Console.WriteLine("File was renamed: " + e.FullPath);
 		}
 
-		private void OnChanged (object source, FileSystemEventArgs e) {
+		private void ElementChangedHandler (object source, FileSystemEventArgs e) {
 			if (!ChildrenInitialized) return;
 			Console.WriteLine("File was changed: " + e.FullPath);
 		}

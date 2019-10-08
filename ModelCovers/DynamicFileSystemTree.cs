@@ -9,11 +9,31 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SimpleFM.ModelCovers {
-	public class DynamicFileSystemTree {
+	public class DynamicFileSystemTree : IDisposable {
 		protected DynamicFileSystemTree () { }
 
 		internal DynamicFileSystemTree (SFMDirectory root) {
 			Root = new FileTreeNode(this, null, root);
+		}
+
+		public void Dispose () {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose (bool disposing) {
+			if (Root != null) {
+				Root.SetUpdating(false);
+				Root.Dispose();
+			}
+			Root = null;
+			if (_ExtraRootNode != null) {
+				_ExtraRootNode.Dispose();
+			}
+		}
+
+		~DynamicFileSystemTree () {
+			Dispose(false);
 		}
 
 		public static void LoadNodesChildren (FileTreeNode targetNode) {
@@ -49,13 +69,6 @@ namespace SimpleFM.ModelCovers {
 			return object.ReferenceEquals(curNode, Root);
 		}
 
-		public void ReleaseTree () {
-			Root.SetUpdating(false);
-			Root.DisposeWatcher();
-			Root.ClearObservableCollections();
-			GC.Collect();
-		}
-
 		internal void OnTreeNodeDelete (FileTreeNode node) {
 			FileSystemFacade.Instance.OnTreeNodeDelete(node);
 		}
@@ -71,6 +84,6 @@ namespace SimpleFM.ModelCovers {
 		}
 
 		private FileTreeNode CurrentRenamingNode { get; set; }
-		public FileTreeNode Root { get; protected set; }
+		public virtual FileTreeNode Root { get; protected set; }
 	}
 }

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SimpleFM.ModelCovers {
-	public class SearchNode : FileTreeNode, INotifyPropertyChanged {
+	public class SearchNode : FileTreeNode, INotifyPropertyChanged, IDisposable {
 		internal SearchNode (SearchTree tree) : base(tree) {
 			CreateChildNodesCollection();
 		}
@@ -14,6 +14,10 @@ namespace SimpleFM.ModelCovers {
 		private SearchNode (SearchTree tree, SearchNode parent, IFileSystemElement element) : base(tree) {
 			Parent = parent;
 			Value = element;
+		}
+
+		protected override void Dispose (Boolean disposing) {
+			base.Dispose(disposing);
 		}
 
 		internal async void AddElementsInDispatcher (IFileSystemElement[] element) {

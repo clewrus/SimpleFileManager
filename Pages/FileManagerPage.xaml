@@ -165,7 +165,7 @@
 						</Button.Triggers>
 					</Button>
 				</StackPanel>
-				<TextBox Name="SearchString" DockPanel.Dock="Left" Grid.Column="0" VerticalContentAlignment="Center">
+				<TextBox Name="SearchString" DockPanel.Dock="Left" ToolTip="Search:" Grid.Column="0" VerticalContentAlignment="Center">
 					<i:Interaction.Triggers>
 						<i:EventTrigger EventName="TextChanged" SourceName="SearchString">
 							<i:InvokeCommandAction Command="{Binding SearchElement}">
@@ -184,8 +184,19 @@
 					</i:Interaction.Triggers>
 				</TextBox>
 			</DockPanel>
-
-			<DataGrid Name="DirectoryInspector"
+			<DockPanel>
+				<TextBox Name="FocusedPathString" DockPanel.Dock="Bottom" Text="{Binding FocusedDirectoryPath, Mode=TwoWay}" BorderBrush="AliceBlue">
+					<TextBox.Style>
+						<Style TargetType="TextBox">
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding IsKeyboardFocused, ElementName=FocusedPathString}" Value="False">
+									<Setter Property="Foreground" Value="Gray"/>
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</TextBox.Style>
+				</TextBox>
+				<DataGrid Name="DirectoryInspector"
 					AutoGenerateColumns="False"
 					ItemsSource="{StaticResource ResourceKey=InspectorContent}"
 					BorderBrush="AliceBlue"
@@ -197,48 +208,49 @@
 					IsReadOnly="True"
 					ContextMenu="{StaticResource DirectoryInspectorContextMenu}">
 
-				<i:Interaction.Triggers>
-					<i:EventTrigger EventName="MouseDoubleClick">
-						<i:InvokeCommandAction Command="{Binding OpenElement}" CommandParameter="{Binding SelectedItem, ElementName=DirectoryInspector}"/>
-					</i:EventTrigger>
+					<i:Interaction.Triggers>
+						<i:EventTrigger EventName="MouseDoubleClick">
+							<i:InvokeCommandAction Command="{Binding OpenElement}" CommandParameter="{Binding SelectedItem, ElementName=DirectoryInspector}"/>
+						</i:EventTrigger>
 
-					<i:EventTrigger EventName="SelectionChanged">
-						<i:InvokeCommandAction Command="{Binding RenamingFault}" CommandParameter=""/>
-					</i:EventTrigger>
-				</i:Interaction.Triggers>
+						<i:EventTrigger EventName="SelectionChanged">
+							<i:InvokeCommandAction Command="{Binding RenamingFault}" CommandParameter=""/>
+						</i:EventTrigger>
+					</i:Interaction.Triggers>
 
-				<DataGrid.CellStyle>
-					<Style TargetType="DataGridCell">
-						<Style.Setters>
-							<Setter Property="BorderBrush" Value="Transparent"/>
-							<Setter Property="Background" Value="White"/>
-							<Setter Property="Foreground" Value="Black"/>
-						</Style.Setters>
+					<DataGrid.CellStyle>
+						<Style TargetType="DataGridCell">
+							<Style.Setters>
+								<Setter Property="BorderBrush" Value="Transparent"/>
+								<Setter Property="Background" Value="White"/>
+								<Setter Property="Foreground" Value="Black"/>
+							</Style.Setters>
 
-						<Style.Triggers>
-							<Trigger Property="IsSelected" Value="True">
-								<Setter Property="Background" Value="LightBlue"/>
-							</Trigger>
-						</Style.Triggers>
-					</Style>
-				</DataGrid.CellStyle>
+							<Style.Triggers>
+								<Trigger Property="IsSelected" Value="True">
+									<Setter Property="Background" Value="LightBlue"/>
+								</Trigger>
+							</Style.Triggers>
+						</Style>
+					</DataGrid.CellStyle>
 
-				<DataGrid.Columns>
-					<DataGridTemplateColumn Header="Name" Width="200">
-						<DataGridTemplateColumn.CellTemplate>
-							<DataTemplate DataType="{x:Type TextBox}">
-								<TextBox Text="{Binding Value.ElementName, Mode=OneWay}" IsReadOnly="{Binding NotRenaming, Mode=OneWay}" Style="{StaticResource ElementTextBoxStyle}">
-									<TextBox.InputBindings>
-										<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Enter"/>
-										<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Return"/>
-									</TextBox.InputBindings>
-								</TextBox>
-							</DataTemplate>
-						</DataGridTemplateColumn.CellTemplate>
-					</DataGridTemplateColumn>
-					<DataGridTextColumn Header="Type" Binding="{Binding Value.ElementType}" Foreground="Gray"/>
-				</DataGrid.Columns>
-			</DataGrid>
+					<DataGrid.Columns>
+						<DataGridTemplateColumn Header="Name" Width="200">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate DataType="{x:Type TextBox}">
+									<TextBox Text="{Binding Value.ElementName, Mode=OneWay}" IsReadOnly="{Binding NotRenaming, Mode=OneWay}" Style="{StaticResource ElementTextBoxStyle}">
+										<TextBox.InputBindings>
+											<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Enter"/>
+											<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Return"/>
+										</TextBox.InputBindings>
+									</TextBox>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+						<DataGridTextColumn Header="Type" Binding="{Binding Value.ElementType}" Foreground="Gray"/>
+					</DataGrid.Columns>
+				</DataGrid>
+			</DockPanel>
 		</DockPanel>
 	</Grid>
 </Page>

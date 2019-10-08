@@ -17,17 +17,39 @@ using System.Collections;
 using System.Windows;
 
 namespace SimpleFM.ViewModels {
-	public class FileManagerViewModel : ViewModelBase, INotifyPropertyChanged {
+	public class FileManagerViewModel : ViewModelBase, INotifyPropertyChanged, IDisposable {
 		public FileManagerViewModel () {
 			AvailableDrives = new ObservableCollection<SFMDirectory>(FileSystemFacade.Instance.AvailableDrives);
 
 			UpdateRootDirectory();
 			AvailableDrives.CollectionChanged += UpdateRootDirectory;
-			FileSystemFacade.Instance.OnElementDelete += OnElementDelete;
-			SearchTreeInstance.OnStatusChanged += OnSearchTreeStatusChanged;
+			FileSystemFacade.Instance.ElementDeleted += OnElementDelete;
+			SearchTreeInstance.StatusChanged += SearchTreeStatusChangedHandler;
 		}
 
-		private void OnSearchTreeStatusChanged () {
+		~FileManagerViewModel () {
+			Dispose(false);
+		}
+
+		public void Dispose () {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose (bool disposing) {
+			if (FileSystemTree != null) {
+				FileSystemTree.Dispose();
+			}
+			if (FocusedTreeNode != null) {
+				FocusedTreeNode.Tree.Dispose();
+			}
+			if (_SearchTreeInstance != null) {
+				_SearchTreeInstance.Dispose();
+			}
+			
+		}
+
+		private void SearchTreeStatusChangedHandler (object sender, EventArgs e) {
 			ActionOnSearchCommand = "";
 		}
 
@@ -50,9 +72,15 @@ namespace SimpleFM.ViewModels {
 			FocusedTreeNode = nwTreeRoot;
 		}
 
-		private void OnElementDelete (IFileSystemElement element) {
+		private void HandleFocusedDirectoryPathChange (string nwFocusedDirectoryPath) {
+			if (Directory.Exists(nwFocusedDirectoryPath)) {
+				ChangeFocusedTreeNode(new SFMDirectory(nwFocusedDirectoryPath));
+			}
+		}
+
+		private void OnElementDelete (object sender, SFMEventArgs e) {
 			string currentPath = FocusedTreeNode.Value.ElementPath;
-			string deletedPath = element.ElementPath;
+			string deletedPath = e.element.ElementPath;
 			
 			while (currentPath != deletedPath) {
 				currentPath = Path.GetDirectoryName(currentPath);
@@ -71,11 +99,13 @@ namespace SimpleFM.ViewModels {
 
 			if (! (FocusedTreeNode is SearchNode)) {
 				directoryBeforeSearch = new SFMDirectory(FocusedTreeNode.Value.ElementPath);
+
+				if (!FileSystemTree.Contains(FocusedTreeNode)) {
+					FocusedTreeNode.Tree.Dispose();
+				}
 			}
 
-			if (!FileSystemTree.Contains(FocusedTreeNode)) {
-				FocusedTreeNode.Tree.ReleaseTree();
-			}
+			FocusedTreeNode.DisposeObservableCollections();
 			FocusedTreeNode = SearchTreeInstance.Root;
 
 			SearchTreeInstance.StartSearch();
@@ -120,7 +150,7 @@ namespace SimpleFM.ViewModels {
 			set {
 				SetProperty(ref _RootDirectory, value);
 
-				FileSystemTree?.ReleaseTree();
+				FileSystemTree?.Dispose();
 				FileSystemTree = FileSystemFacade.Instance.CreateFileSystemTree(RootDirectory);
 				FocusedTreeNode = FileSystemFacade.Instance.CreateFileSystemTree(new SFMDirectory(FileSystemTree.Root.Value.ElementPath)).Root;
 			}
@@ -135,7 +165,29 @@ namespace SimpleFM.ViewModels {
 		private FileTreeNode _FocusedTreeNode;
 		public FileTreeNode FocusedTreeNode {
 			get { return _FocusedTreeNode; }
-			set { SetProperty(ref _FocusedTreeNode, value); }
+			set { 
+				if (FocusedTreeNode != null && value != null && FocusedTreeNode.Tree != value.Tree && !(FocusedTreeNode is SearchNode)) {
+					FocusedTreeNode.Tree.Dispose();
+				}
+
+				SetProperty(ref _FocusedTreeNode, value);
+				if (FocusedTreeNode == null || FocusedTreeNode.Value == null || FocusedTreeNode is SearchNode) {
+					FocusedDirectoryPath = "";
+				} else {
+					FocusedDirectoryPath = FocusedTreeNode.Value.ElementPath;
+				}
+			}
+		}
+
+		public string FocusedDirectoryPath {
+			get { return (FocusedTreeNode is SearchNode)? "" :FocusedTreeNode.Value.ElementPath; }
+			set {
+				if (FocusedTreeNode is SearchNode || FocusedTreeNode == null || value != FocusedTreeNode.Value.ElementPath) {
+					HandleFocusedDirectoryPathChange(value);
+				}
+
+				InvokePropertyChanged();
+			}
 		}
 
 		private SFMDirectory directoryBeforeSearch;
@@ -160,8 +212,7 @@ namespace SimpleFM.ViewModels {
 		public ICommand OpenElement {
 			get => new ViewModelCommand(
 				(arg) => {
-					FileTreeNode selectedNode = arg as FileTreeNode;
-					if (selectedNode == null) return;
+					if (!(arg is FileTreeNode selectedNode)) return;
 
 					if (selectedNode.Value.ElementType == FileSystemFacade.ElementType.File) {
 						// runs file in default application
@@ -170,7 +221,7 @@ namespace SimpleFM.ViewModels {
 					}
 
 					if (!FileSystemTree.Contains(selectedNode)) {
-						FocusedTreeNode.Tree.ReleaseTree();
+						FocusedTreeNode.Tree.Dispose();
 					}
 
 					ChangeFocusedTreeNode(selectedNode.Value);
@@ -291,7 +342,7 @@ namespace SimpleFM.ViewModels {
 					FileSystemFacade.Instance.PasteFromClipboardToDirectory(new SFMDirectory(targetPath));
 				},
 				(arg) => {
-					if (!Clipboard.GetDataObject().GetDataPresent(DataFormats.FileDrop)) return false;
+					if (!FileSystemFacade.Instance.ClipboardContainsElementPath()) return false;
 
 					if (arg is string message && message == "InspectorPaste") {
 						return !(FocusedTreeNode is SearchNode);

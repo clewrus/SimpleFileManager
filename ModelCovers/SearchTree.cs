@@ -6,9 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SimpleFM.ModelCovers {
-	public class SearchTree : DynamicFileSystemTree {
+	public class SearchTree : DynamicFileSystemTree, IDisposable {
 		internal SearchTree () {
 			this.Root = new SearchNode(this);
+		}
+
+		protected override void Dispose (bool disposing) {
+			base.Dispose(disposing);
 		}
 
 		public struct SearchArguments {
@@ -33,7 +37,7 @@ namespace SimpleFM.ModelCovers {
 				throw new Exception("SearchTree args were not initialized.");
 			}
 
-			Root.ClearObservableCollections();
+			Root?.DisposeObservableCollections();
 
 			var args = Arguments;
 			args.requestString = args.requestString.Trim();
@@ -49,6 +53,7 @@ namespace SimpleFM.ModelCovers {
 				IsSearching = false;
 			});
 		}
+
 		#region ParallelCode
 		private void SearchMethod (string curRoot, List<IFileSystemElement> finded) {
 			if (!taskExecutionAllowed) return;
@@ -82,7 +87,7 @@ namespace SimpleFM.ModelCovers {
 			directories = new string[0];
 			try {
 				directories = Directory.GetDirectories(rootPath);
-			} catch (IOException) { } catch (UnauthorizedAccessException) { };
+			} catch (IOException) { } catch (UnauthorizedAccessException) { } catch (ArgumentException) { };
 		}
 
 		private void FindNameMatches (List<IFileSystemElement> finded, string[] files, string[] directories) {
@@ -118,14 +123,14 @@ namespace SimpleFM.ModelCovers {
 						wholeFile = sr.ReadToEnd();
 					}
 
-					if (!taskExecutionAllowed) break;
+					if (!taskExecutionAllowed)
+						break;
 
 					if (wholeFile.Contains(Arguments.requestString)) {
 						finded.Add(new SFMFile(f));
 					}
-				} catch (IOException) { }
+				} catch (IOException) { } catch (ArgumentException) { }
 			}
-
 		}
 		#endregion
 
@@ -140,6 +145,10 @@ namespace SimpleFM.ModelCovers {
 			isArgsInitialized = false;
 		}
 
+		private void OnStatusChanged () {
+			StatusChanged?.Invoke(this, null);
+		}
+
 		private Task searchTask;
 		private bool taskExecutionAllowed;
 
@@ -152,11 +161,11 @@ namespace SimpleFM.ModelCovers {
 			set {
 				if (_IsSearching != value){
 					_IsSearching = value;
-					OnStatusChanged?.Invoke();
+					OnStatusChanged();
 				}
 			}
 		}
-		public event Action OnStatusChanged;
+		public event EventHandler StatusChanged;
 
 		public enum SearchType { None, CurrentDirectory, Recursive }
 	}
