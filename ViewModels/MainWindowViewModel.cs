@@ -19,18 +19,26 @@ namespace SimpleFM.ViewModels {
 			RightFramePage = new FileManagerPage();
 		}
 
-#region LeftFrameProperties
-		public Page LeftFramePage { get { return _LeftFramePage; } set { SetProperty(ref _LeftFramePage, value); } }
+		#region LeftFrameProperties
+
 		private Page _LeftFramePage;
-
+		public Page LeftFramePage {
+			get { return _LeftFramePage; }
+			set { SetProperty(ref _LeftFramePage, value); }
+		}
+		
 		public FooterViewModel LeftFooterViewModel { get; private set; }
-#endregion
+		#endregion
 
-#region RightFrameProperties
-		public Page RightFramePage { get { return _RightFramePage; } set { SetProperty(ref _RightFramePage, value); } }
+		#region RightFrameProperties
+
 		private Page _RightFramePage;
-
+		public Page RightFramePage {
+			get { return _RightFramePage; }
+			set { SetProperty(ref _RightFramePage, value); }
+		}
+		
 		public FooterViewModel RightFooterViewModel { get; private set; }
-#endregion
+		#endregion
 	}
 }

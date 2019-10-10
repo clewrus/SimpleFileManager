@@ -9,6 +9,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace SimpleFM.ModelCovers {
 	public class FileSystemFacade {
@@ -50,8 +52,10 @@ namespace SimpleFM.ModelCovers {
 			foreach (var elem in selectedElements) {
 				selectedElementsPath.Add(elem.ElementPath);
 			}
-
-			Clipboard.SetData(DataFormats.FileDrop, selectedElementsPath.ToArray());
+			try {
+				Clipboard.SetData(DataFormats.FileDrop, selectedElementsPath.ToArray());
+			} catch (ExternalException) { } catch (ThreadStateException) { }
+			
 		}
 
 		public void SetRenamingNode (FileTreeNode node) {
@@ -85,21 +89,45 @@ namespace SimpleFM.ModelCovers {
 		public void CreateNewDirectory (string parentDirectory) {
 			string selectedName = "New directory";
 			int counter = 1;
-			while (Directory.Exists(Path.Combine(parentDirectory, selectedName))) {
-				selectedName = $"New directory{counter++}";
+			
+			string exeptionMessage = "";
+			try {
+				while (Directory.Exists(Path.Combine(parentDirectory, selectedName))) {
+					selectedName = $"New directory{counter++}";
+				}
+
+				Directory.CreateDirectory(Path.Combine(parentDirectory, selectedName));
+			} catch (UnauthorizedAccessException e) {
+				exeptionMessage += $"\n{e.Message}";
+			} catch (IOException e) {
+				exeptionMessage += $"\n{e.Message}";
 			}
 
-			Directory.CreateDirectory(Path.Combine(parentDirectory, selectedName));
+			if (!string.IsNullOrEmpty(exeptionMessage)) {
+				MessageBox.Show($"Can't create a directory{exeptionMessage}");
+			}
 		}
 
 		public void CreateNewFile (string parentDirectory) {
 			string selectedName = "New file.txt";
 			int counter = 1;
-			while (Directory.Exists(Path.Combine(parentDirectory, selectedName))) {
-				selectedName = $"New file{counter++}.txt";
-			}
 
-			File.Create(Path.Combine(parentDirectory, selectedName)).Close();
+			string exeptionMessage = "";
+			try {
+				while (File.Exists(Path.Combine(parentDirectory, selectedName))) {
+					selectedName = $"New file{counter++}.txt";
+				}
+
+				File.Create(Path.Combine(parentDirectory, selectedName)).Close();
+			} catch (UnauthorizedAccessException e) {
+				exeptionMessage += $"\n{e.Message}";
+			} catch (IOException e) {
+				exeptionMessage += $"\n{e.Message}";
+			}
+			
+			if (!string.IsNullOrEmpty(exeptionMessage)) {
+				MessageBox.Show($"Can't create a file{exeptionMessage}");
+			}
 		}
 
 		public bool ClipboardContainsElementPath () {

@@ -23,6 +23,10 @@ namespace SimpleFM.ViewModels {
 			}
 		}
 
+		protected void OnPropertyChanged (string propertyName) {
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
 		protected void InvokePropertyChanged ([CallerMemberName] string caller = "") {
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
 		}

@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SimpleFM.ViewModels {
-	public class FileEditorViewModel : ViewModelBase {
+namespace SimpleFM.ModelCovers.TextEditor {
+	public interface IHtmlElement {
+		string ToString ();
 	}
 }

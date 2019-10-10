@@ -15,6 +15,8 @@ using SimpleFM.Commands;
 using System.IO;
 using System.Collections;
 using System.Windows;
+using SimpleFM.PageManager;
+using SimpleFM.Pages;
 
 namespace SimpleFM.ViewModels {
 	public class FileManagerViewModel : ViewModelBase, INotifyPropertyChanged, IDisposable {
@@ -227,6 +229,18 @@ namespace SimpleFM.ViewModels {
 					ChangeFocusedTreeNode(selectedNode.Value);
 				},
 				(arg) => true
+			);
+		}
+
+		public ICommand OpenInSFMTextEditor {
+			get => new ViewModelCommand(
+				(arg) => {
+					if (arg is FileTreeNode targetNode && targetNode.Value != null && targetNode.Value is SFMFile) {
+						PageBoundManager.Instance.CreatePageInNewWindow<TextEditorPage>("SFM Text Editor", targetNode.Value as SFMFile);
+					}
+				},
+
+				(arg) =>  arg is FileTreeNode targetNode && targetNode.Value != null && targetNode.Value is SFMFile
 			);
 		}
 

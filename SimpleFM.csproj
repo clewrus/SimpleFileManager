@@ -35,11 +35,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.AvalonEdit, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
+      <HintPath>packages\AvalonEdit.6.0.0\lib\net45\ICSharpCode.AvalonEdit.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\System.Windows.Interactivity.WPF.2.0.20525\lib\net40\Microsoft.Expression.Interactions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\System.Windows.Interactivity.WPF.2.0.20525\lib\net40\System.Windows.Interactivity.dll</HintPath>
     </Reference>
@@ -61,20 +65,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Behaviours\AvalonEditBehaviour.cs" />
+    <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Converters\FileSystemElementConverter.cs" />
+    <Compile Include="Converters\FlipBoolConverter.cs" />
     <Compile Include="Converters\MultiParameterConverter.cs" />
-    <Compile Include="ModelCovers\DynamicFileSystemTree.cs" />
-    <Compile Include="ModelCovers\FileSystemFacade.cs" />
-    <Compile Include="ModelCovers\FileTreeNode.cs" />
-    <Compile Include="ModelCovers\IFileSystemElement.cs" />
-    <Compile Include="ModelCovers\SearchNode.cs" />
-    <Compile Include="ModelCovers\SearchTree.cs" />
-    <Compile Include="ModelCovers\SFMDirectory.cs" />
-    <Compile Include="ModelCovers\SFMEventArgs.cs" />
-    <Compile Include="ModelCovers\SFMFile.cs" />
+    <Compile Include="ModelCovers\FileManager\DynamicFileSystemTree.cs" />
+    <Compile Include="ModelCovers\FileManager\FileSystemFacade.cs" />
+    <Compile Include="ModelCovers\FileManager\FileTreeNode.cs" />
+    <Compile Include="ModelCovers\FileManager\IFileSystemElement.cs" />
+    <Compile Include="ModelCovers\FileManager\SearchNode.cs" />
+    <Compile Include="ModelCovers\FileManager\SearchTree.cs" />
+    <Compile Include="ModelCovers\FileManager\SFMDirectory.cs" />
+    <Compile Include="ModelCovers\FileManager\SFMEventArgs.cs" />
+    <Compile Include="ModelCovers\FileManager\SFMFile.cs" />
     <Compile Include="Commands\ViewModelCommand.cs" />
-    <Compile Include="ModelCovers\SFMParentDirectory.cs" />
-    <Compile Include="ViewModels\FileEditorViewModel.cs" />
+    <Compile Include="ModelCovers\FileManager\SFMParentDirectory.cs" />
+    <Compile Include="ModelCovers\TextEditor\IHtmlElement.cs" />
+    <Compile Include="ModelCovers\TextEditor\SimpleHtmlParsedFile.cs" />
+    <Compile Include="ModelCovers\TextEditor\SimpleHtmlTag.cs" />
+    <Compile Include="ModelCovers\TextEditor\SimpleHtmlText.cs" />
+    <Compile Include="ModelCovers\TextEditor\TagTreeNode.cs" />
+    <Compile Include="PageManager\PageBindingChangeEventArgs.cs" />
+    <Compile Include="PageManager\PageBoundManager.cs" />
+    <Compile Include="PageContainerWindow.xaml.cs">
+      <DependentUpon>PageContainerWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\PageContainerViewModel.cs" />
+    <Compile Include="ViewModels\TextEditorViewModel.cs" />
     <Compile Include="ViewModels\FileManagerViewModel.cs" />
     <Compile Include="ViewModels\FooterViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
@@ -91,7 +109,11 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Pages\FileEditorPage.xaml">
+    <Page Include="PageContainerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\TextEditorPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -105,8 +127,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Pages\FileEditorPage.xaml.cs">
-      <DependentUpon>FileEditorPage.xaml</DependentUpon>
+    <Compile Include="Pages\TextEditorPage.xaml.cs">
+      <DependentUpon>TextEditorPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\FileManagerPage.xaml.cs">
       <DependentUpon>FileManagerPage.xaml</DependentUpon>

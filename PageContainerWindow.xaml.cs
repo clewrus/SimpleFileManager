@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleFM.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,19 +11,16 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-using SimpleFM.ViewModels;
-
-namespace SimpleFM.Pages {
+namespace SimpleFM.PageManager {
 	/// <summary>
-	/// Логика взаимодействия для FileEditorPage.xaml
+	/// Логика взаимодействия для Window1.xaml
 	/// </summary>
-	public partial class FileEditorPage : Page {
-		public FileEditorPage () {
+	public partial class PageContainerWindow : Window {
+		public PageContainerWindow (Page initialPage, string windowName) {
 			InitializeComponent();
-			this.DataContext = new FileEditorViewModel();
+			this.DataContext = new PageContainerViewModel(initialPage, windowName);
 		}
 	}
 }
