@@ -8,6 +8,9 @@ using System.ComponentModel;
 using System.Windows.Controls;
 
 using SimpleFM.Pages;
+using System.Windows.Input;
+using SimpleFM.Commands;
+using System.Windows;
 
 namespace SimpleFM.ViewModels {
 	public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged {
@@ -40,5 +43,23 @@ namespace SimpleFM.ViewModels {
 		
 		public FooterViewModel RightFooterViewModel { get; private set; }
 		#endregion
+
+		public ICommand ShowInfoMessageBox {
+			get => new ViewModelCommand(
+				(arg) =>  MessageBox.Show( "This is a file manager \nthat was created for education purpose.\n")
+			);
+		}
+
+		public ICommand CreaterInfoMessageBox {
+			get => new ViewModelCommand(
+				(arg) => MessageBox.Show("This project was created by\nOleksii Saitarly (group K-26)")
+			);
+		}
+
+		public ICommand CustomFileManagerInfoMessageBox {
+			get => new ViewModelCommand(
+				(arg) => MessageBox.Show("You may open a file by rightclick on it and select\n Open in SFMTextEditor")
+			);
+		}
 	}
 }

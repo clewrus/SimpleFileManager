@@ -64,6 +64,7 @@ namespace SimpleFM.ModelCovers.TextEditor {
 			var tagStack = new Stack<SimpleHtmlTag>();
 
 			bool searchingTag = false;
+			int openedTags = 0;
 			int lastEventPosition = 0;
 
 			bool skippingComment = false;
@@ -101,6 +102,9 @@ namespace SimpleFM.ModelCovers.TextEditor {
 				}
 
 				if (searchingTag && curChar == '>') {
+					if (--openedTags > 0) {
+						continue;
+					}
 					var nwTag = new SimpleHtmlTag(this, targetText.Substring(lastEventPosition, i - lastEventPosition + 1));
 					elementList.Add(nwTag);
 
@@ -129,11 +133,17 @@ namespace SimpleFM.ModelCovers.TextEditor {
 				}
 
 				if (curChar == '<') {
+					if (searchingTag) {
+						openedTags++;
+						continue;
+					}
+
 					if (i != lastEventPosition) {
 						elementList.Add(new SimpleHtmlText(targetText.Substring(lastEventPosition, i - lastEventPosition)));
 					}
 
 					lastEventPosition = i;
+					openedTags = 1;
 					searchingTag = true;
 				}
 			}

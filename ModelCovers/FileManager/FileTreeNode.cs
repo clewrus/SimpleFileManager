@@ -308,6 +308,12 @@ namespace SimpleFM.ModelCovers {
 			set { _NotRenaming = value; InvokePropertyChanged(); }
 		}
 
+		private bool _IsCutted;
+		public bool IsCutted {
+			get => _IsCutted;
+			set { _IsCutted = value; InvokePropertyChanged(); }
+		}
+
 		public ObservableCollection<FileTreeNode> ParentNodeCollection {
 			get {
 				var parentCollection = new ObservableCollection<FileTreeNode>();

@@ -58,6 +58,16 @@ namespace SimpleFM.ModelCovers.TextEditor {
 			parent.OnContentUpdated();
 		}
 
+		private string FilterTagName (string n) {
+			string filteredName = "";
+			for (int i = 0; i < n.Length; i++) {
+				if (char.IsLetterOrDigit(n[i])) {
+					filteredName += n[i];
+				}
+			}
+			return filteredName;
+		}
+
 		public override String ToString () {
 			string tagString = "<";
 			tagString += (isOpening && tagType != TagType.Single) ? "" : "/";
@@ -81,12 +91,13 @@ namespace SimpleFM.ModelCovers.TextEditor {
 		}
 
 		public string LowerName { get => name.ToLower(); }
+
 		public string Name { 
 			get => name;
 			set {
-				name = value;
+				name = FilterTagName(value);
 				if (SecondTag != null) {
-					SecondTag.name = value;
+					SecondTag.name = name;
 				}
 				parent.OnContentUpdated();
 			}

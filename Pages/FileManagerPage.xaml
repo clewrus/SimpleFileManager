@@ -4,12 +4,14 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
 	  xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+	  xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
 
       xmlns:local="clr-namespace:SimpleFM.Pages"
 	  xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:modelCovers="clr-namespace:SimpleFM.ModelCovers"
 	  xmlns:commands="clr-namespace:SimpleFM.Commands"
 	  xmlns:converters="clr-namespace:SimpleFM.Converters"
+	  xmlns:behaviours="clr-namespace:SimpleFM.Behaviours"
 
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
@@ -31,11 +33,24 @@
 					<Setter Property="BorderBrush" Value="Transparent"/>
 					<Setter Property="Focusable" Value="False"/>
 				</Trigger>
+
+				<DataTrigger Binding="{Binding DataContext.IsCutted, RelativeSource={RelativeSource Mode=Self}}" Value="True">
+					<Setter Property="Foreground" Value="Gray"/>
+				</DataTrigger>
+			</Style.Triggers>
+		</Style>
+
+		<Style x:Key="VisibleIfEnabled" TargetType="MenuItem">
+			<Style.Triggers>
+				<Trigger Property="IsEnabled" Value="False">
+					<Setter Property="Visibility" Value="Collapsed"/>
+				</Trigger>
 			</Style.Triggers>
 		</Style>
 
 		<ContextMenu x:Key="NavigationTreeContextMenu">
 			<MenuItem Header="Copy" Command="{Binding Copy}" CommandParameter="{Binding SelectedItem, Source={x:Reference NavigationTree}}" InputGestureText="Ctrl+C"/>
+			<MenuItem Header="Cut" Command="{Binding Cut}"  CommandParameter="{Binding SelectedItem, Source={x:Reference NavigationTree}}" InputGestureText="Ctrl+X"/>
 			<MenuItem Header="Paste" Command="{Binding Paste}" CommandParameter="{Binding SelectedItem, Source={x:Reference NavigationTree}}" InputGestureText="Ctrl+V"/>
 			<Separator/>
 			<MenuItem Header="Rename" Command="{Binding InitiateRename}" CommandParameter="{Binding SelectedItem, Source={x:Reference NavigationTree}}"/>
@@ -44,26 +59,17 @@
 		</ContextMenu>
 
 		<ContextMenu x:Key="DirectoryInspectorContextMenu">
-			<MenuItem Header="Open in SFMTextEditor" Command="{Binding OpenInSFMTextEditor}" CommandParameter="{Binding SelectedItem, Source={x:Reference DirectoryInspector}}">
-				<MenuItem.Style>
-					<Style TargetType="MenuItem">
-						<Style.Triggers>
-							<Trigger Property="IsEnabled" Value="False">
-								<Setter Property="Visibility" Value="Collapsed"/>
-							</Trigger>
-						</Style.Triggers>
-					</Style>
-				</MenuItem.Style>
-			</MenuItem>
-			<MenuItem Header="Update" Command="{Binding UpdateCommand}" CommandParameter=""/>
+			<MenuItem Header="Open in SFMTextEditor" Style="{StaticResource VisibleIfEnabled}" Command="{Binding OpenInSFMTextEditor}" CommandParameter="{Binding SelectedItem, Source={x:Reference DirectoryInspector}}"/>
+			<MenuItem Header="Update" Style="{StaticResource VisibleIfEnabled}" Command="{Binding UpdateCommand}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
 			<Separator/>
-			<MenuItem Header="Create folder" Command="{Binding CreateFolder}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
-			<MenuItem Header="Create file" Command="{Binding CreateFile}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
+			<MenuItem Header="Create folder" Style="{StaticResource VisibleIfEnabled}" Command="{Binding CreateFolder}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
+			<MenuItem Header="Create file" Style="{StaticResource VisibleIfEnabled}" Command="{Binding CreateFile}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
 			<Separator/>
-			<MenuItem Header="Copy" Command="{Binding Copy}" CommandParameter="{Binding SelectedItem, Source={x:Reference DirectoryInspector}}" InputGestureText="Ctrl+C"/>
+			<MenuItem Header="Copy" Command="{Binding Copy}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}" InputGestureText="Ctrl+C"/>
+			<MenuItem Header="Cut" Command="{Binding Cut}"  CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}" InputGestureText="Ctrl+X"/>
 			<MenuItem Header="Paste" Command="{Binding Paste}" CommandParameter="InspectorPaste" InputGestureText="Ctrl+V"/>
 			<Separator/>
-			<MenuItem Header="Rename" Command="{Binding InitiateRename}" CommandParameter="{Binding SelectedItem, Source={x:Reference DirectoryInspector}}"/>
+			<MenuItem Header="Rename" Command="{Binding InitiateRename}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
 			<Separator/>
 			<MenuItem Header="Remove" Command="{Binding Remove}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
 		</ContextMenu>
@@ -89,6 +95,18 @@
 				ItemsSource="{Binding FileSystemTree.ExtraRootNode.ChildDirectoryNodes}"
 				ContextMenu="{StaticResource NavigationTreeContextMenu}">
 
+				<TreeView.InputBindings>
+					<KeyBinding Command="{Binding Copy}" CommandParameter="{Binding SelectedItem, ElementName=NavigationTree}" Modifiers="Ctrl" Key="C"/>
+					<KeyBinding Command="{Binding Cut}"  CommandParameter="{Binding SelectedItem, ElementName=NavigationTree}" Modifiers="Ctrl" Key="X"/>
+					<KeyBinding Command="{Binding Paste}" CommandParameter="{Binding SelectedItem, ElementName=NavigationTree}" Modifiers="Ctrl" Key="V"/>
+				</TreeView.InputBindings>
+
+				<i:Interaction.Triggers>
+					<i:EventTrigger EventName="MouseLeftButtonDown">
+						<i:InvokeCommandAction Command="{Binding RenamingFault}"/>
+					</i:EventTrigger>
+				</i:Interaction.Triggers>
+
 				<TreeView.ItemContainerStyle>
 					<Style TargetType="{x:Type TreeViewItem}">
 						<Style.Setters>
@@ -97,15 +115,28 @@
 					</Style>
 				</TreeView.ItemContainerStyle>
 
-				<i:Interaction.Triggers>
-					<i:EventTrigger EventName="SelectedItemChanged">
-						<i:InvokeCommandAction Command="{Binding OpenElement}" CommandParameter="{Binding SelectedItem, ElementName=NavigationTree}"/>
-					</i:EventTrigger>
-				</i:Interaction.Triggers>
-
 				<TreeView.ItemTemplate>
 					<HierarchicalDataTemplate DataType="{x:Type modelCovers:FileTreeNode}" ItemsSource="{Binding ChildDirectoryNodes}">
-						<TextBox Text="{Binding Value.ElementName, Mode=OneWay}" IsReadOnly="{Binding NotRenaming, Mode=OneWay}" Cursor="Arrow" Style="{StaticResource ElementTextBoxStyle}"/>
+						<TextBox Text="{Binding Value.ElementName, Mode=OneWay}" IsReadOnly="{Binding NotRenaming, Mode=OneWay}" Cursor="Arrow" Style="{StaticResource ElementTextBoxStyle}">
+							<i:Interaction.Behaviors>
+								<behaviours:TextBoxRenamingBehaviour/>
+							</i:Interaction.Behaviors>
+
+							<TextBox.InputBindings>
+								<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Enter"/>
+								<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Return"/>
+							</TextBox.InputBindings>
+
+							<i:Interaction.Triggers>
+								<i:EventTrigger EventName="MouseLeftButtonDown">
+									<i:InvokeCommandAction Command="{Binding DataContext.OpenElement, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding}"/>
+								</i:EventTrigger>
+								<i:EventTrigger EventName="MouseRightButtonUp">
+									<ei:ChangePropertyAction TargetObject="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem, Mode=FindAncestor}}" PropertyName="IsSelected" Value="True"/>
+								</i:EventTrigger>
+							</i:Interaction.Triggers>
+						</TextBox>
+
 					</HierarchicalDataTemplate>
 				</TreeView.ItemTemplate>
 			</TreeView>
@@ -125,6 +156,7 @@
 								<Binding Path="IsChecked" ElementName="searchSettings_recursive"/>
 								<Binding Path="IsChecked" ElementName="searchSettings_fileContent"/>
 								<Binding Path="IsChecked" ElementName="searchSettings_caseSensetive"/>
+								<Binding Path="IsChecked" ElementName="searchSettings_regularExpression"/>
 							</MultiBinding>
 						</Button.CommandParameter>
 					</Button>
@@ -148,12 +180,17 @@
 								<Separator/>
 								<MenuItem Header="Consider files content">
 									<MenuItem.Icon>
-										<CheckBox Name="searchSettings_fileContent" IsChecked="False"/>
+										<CheckBox Name="searchSettings_fileContent" IsChecked="False" ToolTip="Search will look through each file's content."/>
 									</MenuItem.Icon>
 								</MenuItem>
 								<MenuItem Header="Case sensetive">
 									<MenuItem.Icon>
 										<CheckBox Name="searchSettings_caseSensetive" IsChecked="False"/>
+									</MenuItem.Icon>
+								</MenuItem>
+								<MenuItem Header="Regular expression">
+									<MenuItem.Icon>
+										<CheckBox Name="searchSettings_regularExpression" IsChecked="False"/>
 									</MenuItem.Icon>
 								</MenuItem>
 							</ContextMenu>
@@ -188,6 +225,7 @@
 										<Binding Path="IsChecked" ElementName="searchSettings_recursive"/>
 										<Binding Path="IsChecked" ElementName="searchSettings_fileContent"/>
 										<Binding Path="IsChecked" ElementName="searchSettings_caseSensetive"/>
+										<Binding Path="IsChecked" ElementName="searchSettings_regularExpression"/>
 									</MultiBinding>
 								</i:InvokeCommandAction.CommandParameter>
 							</i:InvokeCommandAction>
@@ -219,13 +257,21 @@
 					IsReadOnly="True"
 					ContextMenu="{StaticResource DirectoryInspectorContextMenu}">
 
+					<DataGrid.InputBindings>
+						<KeyBinding Command="{Binding Copy}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryInspector}" Modifiers="Ctrl" Key="C"/>
+						<KeyBinding Command="{Binding Cut}"  CommandParameter="{Binding SelectedItems, ElementName=DirectoryInspector}" Modifiers="Ctrl" Key="X"/>
+						<KeyBinding Command="{Binding Paste}" CommandParameter="InspectorPaste" Modifiers="Ctrl" Key="V"/>
+						<KeyBinding Command="{Binding OpenInSFMTextEditor}" CommandParameter="{Binding SelectedItem, ElementName=DirectoryInspector}" Key="F3"/>
+					</DataGrid.InputBindings>
+
 					<i:Interaction.Triggers>
 						<i:EventTrigger EventName="MouseDoubleClick">
 							<i:InvokeCommandAction Command="{Binding OpenElement}" CommandParameter="{Binding SelectedItem, ElementName=DirectoryInspector}"/>
 						</i:EventTrigger>
 
-						<i:EventTrigger EventName="SelectionChanged">
-							<i:InvokeCommandAction Command="{Binding RenamingFault}" CommandParameter=""/>
+						<i:EventTrigger EventName="MouseLeftButtonDown">
+							<ei:CallMethodAction TargetObject="{Binding ElementName=DirectoryInspector}" MethodName="UnselectAll"/>
+							<i:InvokeCommandAction Command="{Binding RenamingFault}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryInspector}"/>
 						</i:EventTrigger>
 					</i:Interaction.Triggers>
 
@@ -249,7 +295,10 @@
 						<DataGridTemplateColumn Header="Name" Width="200">
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate DataType="{x:Type TextBox}">
-									<TextBox Text="{Binding Value.ElementName, Mode=OneWay}" IsReadOnly="{Binding NotRenaming, Mode=OneWay}" Style="{StaticResource ElementTextBoxStyle}">
+									<TextBox Text="{Binding Value.ElementName, Mode=OneWay}" IsReadOnly="{Binding NotRenaming, Mode=TwoWay}" Style="{StaticResource ElementTextBoxStyle}">
+										<i:Interaction.Behaviors>
+											<behaviours:TextBoxRenamingBehaviour/>
+										</i:Interaction.Behaviors>
 										<TextBox.InputBindings>
 											<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Enter"/>
 											<KeyBinding Command="{Binding DataContext.RenamingSuccess, Source={x:Reference DirectoryInspector}}" CommandParameter="{Binding Text, RelativeSource={RelativeSource AncestorType=TextBox, Mode=FindAncestor}}" Key="Return"/>

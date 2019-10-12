@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SimpleFM"
         mc:Ignorable="d"
-        Title="Simple File Manager" Height="525" Width="900">
+        Title="Simple File Manager" Height="630" Width="1080">
 
 	<Grid>
 		<Grid.RowDefinitions>
@@ -16,10 +16,10 @@
 		<Border>
 			<Menu Grid.Row="0" Background="White">
 				<MenuItem Header="Info">
-					<MenuItem Header="Usefull info"/>
-					<MenuItem Header="Useless info"/>
+					<MenuItem Header="Project info" Command="{Binding ShowInfoMessageBox}"/>
+					<MenuItem Header="Custom file editor" Command="{Binding CustomFileManagerInfoMessageBox}"/>
 					<Separator/>
-					<MenuItem Header="Creator"/>
+					<MenuItem Header="Creator's info" Command="{Binding CreaterInfoMessageBox}"/>
 				</MenuItem>
 			</Menu>
 		</Border>

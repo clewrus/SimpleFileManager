@@ -92,12 +92,12 @@ namespace SimpleFM.ViewModels {
 			ChangeFocusedTreeNode(new SFMDirectory(RootDirectory.ElementPath));
 		}
 
-		private void StartNewSearch (string request, SearchTree.SearchType searchType, bool considerContent, bool caseSensetive) {
+		private void StartNewSearch (string request, SearchTree.SearchType searchType, bool considerContent, bool caseSensetive, bool isRegularExpression) {
 			while (SearchTreeInstance.IsSearching) {
 				SearchTreeInstance.EndSearch();
 			}
 			
-			SetSearchArguments(request, searchType, considerContent, caseSensetive);
+			SetSearchArguments(request, searchType, considerContent, caseSensetive, isRegularExpression);
 
 			if (! (FocusedTreeNode is SearchNode)) {
 				directoryBeforeSearch = new SFMDirectory(FocusedTreeNode.Value.ElementPath);
@@ -113,12 +113,13 @@ namespace SimpleFM.ViewModels {
 			SearchTreeInstance.StartSearch();
 		}
 
-		private void SetSearchArguments (string request, SearchTree.SearchType searchType, bool considerContent, bool caseSensetive) {
+		private void SetSearchArguments (string request, SearchTree.SearchType searchType, bool considerContent, bool caseSensetive, bool isRegularExpression) {
 			var args = new SearchTree.SearchArguments() {
 				requestString = request,
 				considerFilesContent = considerContent,
 				searchType = searchType,
-				caseSensetive = caseSensetive
+				caseSensetive = caseSensetive,
+				isRegularExpression = isRegularExpression
 			};
 
 			if (FocusedTreeNode is SearchNode) {
@@ -259,6 +260,7 @@ namespace SimpleFM.ViewModels {
 					bool recursive = (bool)parameters[3];
 					bool considerContent = (bool)parameters[4];
 					bool caseSensetive = (bool)parameters[5];
+					bool isRegularExpression = (bool)parameters[6];
 					var searchType = (recursive) ? SearchTree.SearchType.Recursive : SearchTree.SearchType.CurrentDirectory;
 
 					if (request == string.Empty || request == "") {
@@ -266,7 +268,7 @@ namespace SimpleFM.ViewModels {
 						return;
 					}
 
-					StartNewSearch(request, searchType, considerContent, caseSensetive);
+					StartNewSearch(request, searchType, considerContent, !caseSensetive, isRegularExpression);
 				},
 				(arg) => true
 			);
@@ -302,7 +304,7 @@ namespace SimpleFM.ViewModels {
 						ChangeFocusedTreeNode(new SFMDirectory(FocusedTreeNode.Value.ElementPath));
 					}
 				},
-				(arg) => !(FocusedTreeNode is SearchNode)
+				(arg) => ExtractSelectedElements(arg).Count == 0
 			);
 		}
 
@@ -313,7 +315,7 @@ namespace SimpleFM.ViewModels {
 						FileSystemFacade.Instance.CreateNewDirectory(FocusedTreeNode.Value.ElementPath);
 					}
 				},
-				(arg) => true
+				(arg) => ExtractSelectedElements(arg).Count == 0
 			);
 		}
 
@@ -324,17 +326,41 @@ namespace SimpleFM.ViewModels {
 						FileSystemFacade.Instance.CreateNewFile(FocusedTreeNode.Value.ElementPath);
 					}
 				},
-				(arg) => true
+				(arg) => ExtractSelectedElements(arg).Count == 0
 			);
 		}
 
 		public ICommand Copy {
 			get => new ViewModelCommand(
 				(arg) => {
+					FileSystemFacade.Instance.ReleaseCuttedNodes();
 					List<IFileSystemElement> selectedElements = ExtractSelectedElements(arg);
 					if (selectedElements.Count == 0) return;
 
 					FileSystemFacade.Instance.SendElementsToClipboard(selectedElements);
+				},
+				(arg) => ExtractSelectedElements(arg).Count > 0
+			);
+		}
+
+		public ICommand Cut {
+			get => new ViewModelCommand(
+				(arg) => {
+					FileSystemFacade.Instance.ReleaseClipboard();
+					List<FileTreeNode> nodes = new List<FileTreeNode>();
+					if (arg is IEnumerable selectedItems) {
+						foreach (var item in selectedItems) {
+							if (item is FileTreeNode selectedNode) {
+								nodes.Add(selectedNode);
+							}
+						}
+					}
+
+					if (arg is FileTreeNode singleNode) {
+						nodes.Add(singleNode);
+					}
+
+					FileSystemFacade.Instance.SetCuttedNodes(nodes.ToArray());
 				},
 				(arg) => ExtractSelectedElements(arg).Count > 0
 			);
@@ -353,10 +379,16 @@ namespace SimpleFM.ViewModels {
 					}
 					if (targetPath == null) return;
 
-					FileSystemFacade.Instance.PasteFromClipboardToDirectory(new SFMDirectory(targetPath));
+					if (FileSystemFacade.Instance.HasCuttedNodes()) {
+						FileSystemFacade.Instance.MoveCuttedElementsTo(new SFMDirectory(targetPath));
+					}
+					if (FileSystemFacade.Instance.ClipboardContainsElementPath()) {
+						FileSystemFacade.Instance.PasteFromClipboardToDirectory(new SFMDirectory(targetPath));
+					}
 				},
 				(arg) => {
-					if (!FileSystemFacade.Instance.ClipboardContainsElementPath()) return false;
+					if (!FileSystemFacade.Instance.ClipboardContainsElementPath()
+						&& !FileSystemFacade.Instance.HasCuttedNodes()) return false;
 
 					if (arg is string message && message == "InspectorPaste") {
 						return !(FocusedTreeNode is SearchNode);
@@ -370,26 +402,52 @@ namespace SimpleFM.ViewModels {
 		public ICommand InitiateRename {
 			get => new ViewModelCommand(
 				(arg) => {
-					if (arg is FileTreeNode selectedNode) {
-						FileSystemFacade.Instance.SetRenamingNode(selectedNode);
+					if (arg is IEnumerable selectedItems) {
+						foreach (var item in selectedItems) {
+							if (item is FileTreeNode selectedNode) {
+								FileSystemFacade.Instance.SetRenamingNode(selectedNode);
+							}
+						}						
+					}
+
+					if (arg is FileTreeNode singleNode) {
+						FileSystemFacade.Instance.SetRenamingNode(singleNode);
 					}
 				},
-				(arg) => arg is FileTreeNode
+				(arg) => ExtractSelectedElements(arg).Count == 1
 			);
 		}
 
 		public ICommand RenamingFault {
 			get => new ViewModelCommand(
-				(arg) => FileSystemFacade.Instance.SetRenamingNode(null),
-				(arg) => arg is FileTreeNode
+				(arg) => {
+					if (FileSystemFacade.Instance.CurrentRenamingNode != null) {
+						if (FileSystemTree.Contains(FileSystemFacade.Instance.CurrentRenamingNode)) {
+							var rootDirectory = new SFMDirectory(FileSystemTree.Root.Value.ElementPath);
+							FileSystemTree = FileSystemFacade.Instance.CreateFileSystemTree(rootDirectory);
+						} else if (!(FocusedTreeNode is SearchNode)) {
+							ChangeFocusedTreeNode(new SFMDirectory(FocusedTreeNode.Value.ElementPath));
+						}
+					}
+					FileSystemFacade.Instance.SetRenamingNode(null);
+				},
+				(arg) => true
 			);
 		}
 
 		public ICommand RenamingSuccess {
 			get => new ViewModelCommand(
 				(arg) => {
-					if (arg is string nwName && FileSystemFacade.Instance.CurrentRenamingNode != null) {
-						FileSystemFacade.Instance.RenameCurrentRenamingElement(nwName);
+					FileTreeNode renamingNode = FileSystemFacade.Instance.CurrentRenamingNode;
+					if (arg is string nwName && renamingNode != null) {
+						if (!FileSystemFacade.Instance.RenameCurrentRenamingElement(nwName)) {
+							if (FileSystemTree.Contains(renamingNode)) {
+								var rootDirectory = new SFMDirectory(FileSystemTree.Root.Value.ElementPath);
+								FileSystemTree = FileSystemFacade.Instance.CreateFileSystemTree(rootDirectory);
+							} else if (!(FocusedTreeNode is SearchNode)) {
+								ChangeFocusedTreeNode(new SFMDirectory(FocusedTreeNode.Value.ElementPath));
+							}
+						}
 						FileSystemFacade.Instance.SetRenamingNode(null);
 					}
 				},

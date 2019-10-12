@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SimpleFM.ModelCovers {
@@ -22,6 +23,7 @@ namespace SimpleFM.ModelCovers {
 			public bool considerFilesContent;
 			public bool caseSensetive;
 			public string requestString;
+			public bool isRegularExpression;
 		}
 
 		public void SetArguments (SearchArguments args){
@@ -98,18 +100,26 @@ namespace SimpleFM.ModelCovers {
 				if (!taskExecutionAllowed) break;
 
 				string fileName = (caseSensetive) ? f.ToLower() : f;
-				if (fileName.Contains(target)) {
-					finded.Add(new SFMFile(f));
-				}
+				try {
+					if (Arguments.isRegularExpression && Regex.IsMatch(fileName, target)) {
+						finded.Add(new SFMFile(f));
+					} else if (!Arguments.isRegularExpression && fileName.Contains(target)) {
+						finded.Add(new SFMFile(f));
+					}
+				} catch (Exception) { }
 			}
 
 			foreach (var d in directories) {
 				if (!taskExecutionAllowed) break;
 
 				string directoryName = (caseSensetive) ? Path.GetFileName(d).ToLower() : Path.GetFileName(d);
-				if (directoryName.Contains(target)) {
-					finded.Add(new SFMDirectory(d));
-				}
+				try {
+					if (Arguments.isRegularExpression && Regex.IsMatch(directoryName, target)) {
+						finded.Add(new SFMFile(d));
+					} else if (!Arguments.isRegularExpression && directoryName.Contains(target)) {
+						finded.Add(new SFMFile(d));
+					}
+				} catch { }				
 			}
 		}
 
@@ -125,10 +135,13 @@ namespace SimpleFM.ModelCovers {
 
 					if (!taskExecutionAllowed)
 						break;
-
-					if (wholeFile.Contains(Arguments.requestString)) {
-						finded.Add(new SFMFile(f));
-					}
+					try {
+						if (Arguments.isRegularExpression && Regex.IsMatch(wholeFile, Arguments.requestString)) {
+							finded.Add(new SFMFile(f));
+						} else if (!Arguments.isRegularExpression && wholeFile.Contains(Arguments.requestString)) {
+							finded.Add(new SFMFile(f));
+						}
+					} catch (Exception) { }
 				} catch (IOException) { } catch (ArgumentException) { }
 			}
 		}

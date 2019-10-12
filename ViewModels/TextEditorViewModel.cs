@@ -17,6 +17,8 @@ namespace SimpleFM.ViewModels {
 			this.targetFile = targetFile;
 			UpdateFileContent();
 			UpdateFileTags();
+
+			TagsAlteringIsEnabled = false;
 		}
 
 		private void UpdateFileContent () {
@@ -116,8 +118,8 @@ namespace SimpleFM.ViewModels {
 				if (value == _FileContent)
 					return;
 				CanSave = true;
-				UpdateFileTags();
 				SetProperty(ref _FileContent, value);
+				UpdateFileTags();
 			}
 		}
 
@@ -145,6 +147,28 @@ namespace SimpleFM.ViewModels {
 		public ObservableCollection<TagTreeNode> FileTags {
 			get => _FileTags;
 			set => SetProperty(ref _FileTags, value);
+		}
+
+		private bool _TagsAlteringIsEnabled;
+		public bool TagsAlteringIsEnabled {
+			get => _TagsAlteringIsEnabled;
+			set {
+				if (value == TagsAlteringIsEnabled) return;
+				SetProperty(ref _TagsAlteringIsEnabled, value);
+				UpdateFileTags();
+
+				if (TagsAlteringIsEnabled) {
+					TreeModeButtonContent = "Stop altering tags";
+				} else {
+					TreeModeButtonContent = "Start altering tags";
+				}
+			}
+		}
+
+		private string _TreeModeButtonContent;
+		public string TreeModeButtonContent {
+			get => _TreeModeButtonContent ?? "Start altering tags";
+			set => SetProperty(ref _TreeModeButtonContent, value);
 		}
 
 		public string SyntaxHighlightingTarget { get => "HTML"; }
@@ -205,6 +229,15 @@ namespace SimpleFM.ViewModels {
 							tag.RemoveSelf();
 						} catch (Exception) { }
 					}
+				},
+				(arg) => TagsAlteringIsEnabled
+			);
+		}
+
+		public ICommand SwitchTagsAlteringMode {
+			get => new ViewModelCommand(
+				(arg) => {
+					TagsAlteringIsEnabled = !TagsAlteringIsEnabled;
 				}
 			);
 		}
