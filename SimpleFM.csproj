@@ -65,41 +65,45 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Behaviours\AvalonEditBehaviour.cs" />
-    <Compile Include="Behaviours\TextBoxRenamingBehaviour.cs" />
-    <Compile Include="Converters\BoolToVisibilityConverter.cs" />
-    <Compile Include="Converters\ComboboxItemToDouble.cs" />
-    <Compile Include="Converters\FileSystemElementConverter.cs" />
-    <Compile Include="Converters\FlipBoolConverter.cs" />
-    <Compile Include="Converters\MultiParameterConverter.cs" />
-    <Compile Include="ModelCovers\FileManager\DynamicFileSystemTree.cs" />
-    <Compile Include="ModelCovers\FileManager\FileSystemFacade.cs" />
-    <Compile Include="ModelCovers\FileManager\FileTreeNode.cs" />
-    <Compile Include="ModelCovers\FileManager\IFileSystemElement.cs" />
-    <Compile Include="ModelCovers\FileManager\SearchNode.cs" />
-    <Compile Include="ModelCovers\FileManager\SearchTree.cs" />
-    <Compile Include="ModelCovers\FileManager\SFMDirectory.cs" />
-    <Compile Include="ModelCovers\FileManager\SFMEventArgs.cs" />
-    <Compile Include="ModelCovers\FileManager\SFMFile.cs" />
-    <Compile Include="Commands\ViewModelCommand.cs" />
-    <Compile Include="ModelCovers\FileManager\SFMParentDirectory.cs" />
-    <Compile Include="ModelCovers\TextEditor\IHtmlElement.cs" />
-    <Compile Include="ModelCovers\TextEditor\SimpleHtmlParsedFile.cs" />
-    <Compile Include="ModelCovers\TextEditor\SimpleHtmlTag.cs" />
-    <Compile Include="ModelCovers\TextEditor\SimpleHtmlText.cs" />
-    <Compile Include="ModelCovers\TextEditor\TagTreeNode.cs" />
+    <Compile Include="TextEditor\Behaviours\AvalonEditBehaviour.cs" />
+    <Compile Include="FileManager\Behaviours\TextBoxRenamingBehaviour.cs" />
+    <Compile Include="Common\Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Common\Converters\ComboboxItemToDouble.cs" />
+    <Compile Include="Common\Converters\FileSystemElementConverter.cs" />
+    <Compile Include="Common\Converters\FlipBoolConverter.cs" />
+    <Compile Include="Common\Converters\MultiParameterConverter.cs" />
+    <Compile Include="FileManager\ModelCovers\DynamicFileSystemTree.cs" />
+    <Compile Include="FileManager\ModelCovers\FileSystemFacade.cs" />
+    <Compile Include="FileManager\ModelCovers\FileTreeNode.cs" />
+    <Compile Include="FileManager\ModelCovers\IFileSystemElement.cs" />
+    <Compile Include="FileManager\ModelCovers\SearchNode.cs" />
+    <Compile Include="FileManager\ModelCovers\SearchTree.cs" />
+    <Compile Include="FileManager\ModelCovers\SFMDirectory.cs" />
+    <Compile Include="FileManager\ModelCovers\SFMEventArgs.cs" />
+    <Compile Include="FileManager\ModelCovers\SFMFile.cs" />
+    <Compile Include="Common\Commands\ViewModelCommand.cs" />
+    <Compile Include="FileManager\ModelCovers\SFMParentDirectory.cs" />
+    <Compile Include="TextEditor\ModelCovers\IHtmlElement.cs" />
+    <Compile Include="TextEditor\ModelCovers\SimpleHtmlParsedFile.cs" />
+    <Compile Include="TextEditor\ModelCovers\SimpleHtmlTag.cs" />
+    <Compile Include="TextEditor\ModelCovers\SimpleHtmlText.cs" />
+    <Compile Include="TextEditor\ModelCovers\TagTreeNode.cs" />
     <Compile Include="PageManager\PageBindingChangeEventArgs.cs" />
     <Compile Include="PageManager\PageBoundManager.cs" />
-    <Compile Include="PageContainerWindow.xaml.cs">
+    <Compile Include="PageManager\PageContainerWindow.xaml.cs">
       <DependentUpon>PageContainerWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewModels\PageContainerViewModel.cs" />
-    <Compile Include="ViewModels\TextEditorViewModel.cs" />
-    <Compile Include="ViewModels\FileManagerViewModel.cs" />
-    <Compile Include="ViewModels\FooterViewModel.cs" />
-    <Compile Include="ViewModels\MainWindowViewModel.cs" />
-    <Compile Include="ViewModels\ViewModelBase.cs" />
-    <Page Include="MainWindow.xaml">
+    <Compile Include="GridEditor\Pages\GridEditorPage.xaml.cs">
+      <DependentUpon>GridEditorPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GridEditor\ViewModels\GridEditorViewModel.cs" />
+    <Compile Include="PageManager\PageContainerViewModel.cs" />
+    <Compile Include="TextEditor\ViewModel\TextEditorViewModel.cs" />
+    <Compile Include="FileManager\ViewModels\FileManagerViewModel.cs" />
+    <Compile Include="MainWindow\FooterViewModel.cs" />
+    <Compile Include="MainWindow\ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="Common\ViewModels\ViewModelBase.cs" />
+    <Page Include="MainWindow\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -107,32 +111,44 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="MainWindow\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="PageContainerWindow.xaml">
+    <Page Include="PageManager\PageContainerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\TextEditorPage.xaml">
+    <Page Include="GridEditor\Pages\GridEditorPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\FileManagerPage.xaml">
+    <Page Include="TextEditor\Pages\TextEditorPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="StaticXAMLResources\ControlTemplates.xaml">
+    <Page Include="FileManager\Pages\FileManagerPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\StaticXamlResources\ControlTemplates.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Common\StaticXamlResources\CommonStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GridEditor\StaticXamlResources\GridEditorStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Pages\TextEditorPage.xaml.cs">
+    <Compile Include="TextEditor\Pages\TextEditorPage.xaml.cs">
       <DependentUpon>TextEditorPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\FileManagerPage.xaml.cs">
+    <Compile Include="FileManager\Pages\FileManagerPage.xaml.cs">
       <DependentUpon>FileManagerPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
