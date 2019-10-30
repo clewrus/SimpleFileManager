@@ -43,6 +43,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\System.Windows.Interactivity.WPF.2.0.20525\lib\net40\System.Windows.Interactivity.dll</HintPath>
@@ -65,6 +66,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="GridEditor\Behaviors\GridTextBoxBehavior.cs" />
+    <Compile Include="GridEditor\Components\CellGrid.xaml.cs">
+      <DependentUpon>CellGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GridEditor\Converters\CellCollectionToDataTableConverter.cs" />
+    <Compile Include="GridEditor\GridRepresentation\CalculatingGrid.cs" />
+    <Compile Include="GridEditor\GridRepresentation\Cell.cs" />
+    <Compile Include="GridEditor\GridRepresentation\CellGrid.cs" />
+    <Compile Include="GridEditor\GridRepresentation\GridMemento.cs" />
+    <Compile Include="GridEditor\GridRepresentation\HistoryCalculatingGrid.cs" />
+    <Compile Include="GridEditor\GridRepresentation\HistoryCellGrid.cs" />
+    <Compile Include="GridEditor\GridRepresentation\IMemento.cs" />
+    <Compile Include="GridEditor\GridRepresentation\ParsedCell.cs" />
+    <Compile Include="GridEditor\GridRepresentation\SequenceCaretaker.cs" />
+    <Compile Include="GridEditor\GridRepresentation\UpdatedByUserEventArgs.cs" />
     <Compile Include="TextEditor\Behaviours\AvalonEditBehaviour.cs" />
     <Compile Include="FileManager\Behaviours\TextBoxRenamingBehaviour.cs" />
     <Compile Include="Common\Converters\BoolToVisibilityConverter.cs" />
@@ -103,6 +119,10 @@
     <Compile Include="MainWindow\FooterViewModel.cs" />
     <Compile Include="MainWindow\ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Common\ViewModels\ViewModelBase.cs" />
+    <Page Include="GridEditor\Components\CellGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
