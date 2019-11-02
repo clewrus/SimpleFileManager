@@ -158,21 +158,21 @@ namespace SimpleFM.GridEditor.Components {
 			nwGridHeaderColumm.Width = new GridLength(MIN_CELL_WIDTH);
 			GridHeader.ColumnDefinitions.Add(nwGridHeaderColumm);
 
-			UIElement nwHeader = CreateGridColumnHeaderContent(GridHeader.ColumnDefinitions.Count - 2);
+			UIElement nwHeader = CreateGridColumnHeaderContent(GridHeader.ColumnDefinitions.Count - 1);
 			Grid.SetColumn(nwHeader, GridHeader.ColumnDefinitions.Count - 1);
 			GridHeader.Children.Add(nwHeader);
 
-			var nwGridSplitter = new GridSplitter() { 
+			var nwGridSplitter = new GridSplitter() {
 				HorizontalAlignment = HorizontalAlignment.Right,
 				VerticalAlignment = VerticalAlignment.Stretch,
-				Background = GridSplitterBrush,
-				Width = 1
+				Background = new SolidColorBrush(),
+				Width = 6,
 			};
 			Grid.SetColumn(nwGridSplitter, GridHeader.ColumnDefinitions.Count - 1);
 			GridHeader.Children.Add(nwGridSplitter);
 
 			gridHeaderStructure.Add((nwHeader, nwGridSplitter));
-			Debug.Assert(gridHeaderStructure.Count == GridHeader.ColumnDefinitions.Count - 1);
+			Debug.Assert(gridHeaderStructure.Count == GridHeader.ColumnDefinitions.Count);
 		}
 
 		private UIElement CreateGridColumnHeaderContent (int headerIndex) {
@@ -194,7 +194,7 @@ namespace SimpleFM.GridEditor.Components {
 
 			return new Border() {
 				Child = content,
-				BorderThickness = new Thickness(1, 0, 0, 0),
+				BorderThickness = new Thickness(1, 0, 1, 0),
 				BorderBrush = GridSplitterBrush
 			};
 		}
@@ -261,8 +261,8 @@ namespace SimpleFM.GridEditor.Components {
 			var nwGridSplitter = new GridSplitter() {
 				HorizontalAlignment = HorizontalAlignment.Stretch,
 				VerticalAlignment = VerticalAlignment.Bottom,
-				Background = GridSplitterBrush,
-				Height = 1
+				Background = new SolidColorBrush(),
+				Height = 6
 			};
 
 			Grid.SetRow(nwGridSplitter, RowNumberGrid.RowDefinitions.Count - 1);
@@ -283,7 +283,7 @@ namespace SimpleFM.GridEditor.Components {
 			return new Border() {
 				Child = content,
 				BorderBrush = GridSplitterBrush,
-				BorderThickness = new Thickness(0, 1, 0, 0)
+				BorderThickness = new Thickness(0, 1, 0, 1)
 			};
 		}
 
