@@ -67,8 +67,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="GridEditor\Behaviors\GridTextBoxBehavior.cs" />
-    <Compile Include="GridEditor\Components\CellGrid.xaml.cs">
-      <DependentUpon>CellGrid.xaml</DependentUpon>
+    <Compile Include="GridEditor\Components\InteractiveGrid.xaml.cs">
+      <DependentUpon>InteractiveGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GridEditor\Components\GridCell.xaml.cs">
+      <DependentUpon>GridCell.xaml</DependentUpon>
     </Compile>
     <Compile Include="GridEditor\Converters\CellCollectionToDataTableConverter.cs" />
     <Compile Include="GridEditor\GridRepresentation\CalculatingGrid.cs" />
@@ -119,7 +122,11 @@
     <Compile Include="MainWindow\FooterViewModel.cs" />
     <Compile Include="MainWindow\ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Common\ViewModels\ViewModelBase.cs" />
-    <Page Include="GridEditor\Components\CellGrid.xaml">
+    <Page Include="GridEditor\Components\InteractiveGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GridEditor\Components\GridCell.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

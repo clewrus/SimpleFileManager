@@ -12,9 +12,8 @@ using System.Threading.Tasks;
 namespace SimpleFM.GridEditor.ViewModels {
 	public class GridEditorViewModel : ViewModelBase, INotifyPropertyChanged {
 		public GridEditorViewModel (SFMFile targetFile) {
-			GridRepresentation = new HistoryCalculatingGrid(30, 50);
+			GridRepresentation = new HistoryCalculatingGrid(15, 30);
 		}
-
 
 		private HistoryCellGrid _GridRepresentation;
 		public HistoryCellGrid GridRepresentation {

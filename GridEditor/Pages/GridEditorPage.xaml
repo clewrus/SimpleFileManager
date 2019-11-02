@@ -44,53 +44,7 @@
 			</Grid>
 		</Border>
 
-		<customComponents:CellGrid Grid.Row="2" GridData="{Binding GridRepresentation.GridData}"/>
-
-		<!--<DataGrid
-			Grid.Row="2"
-			Style="{StaticResource MainGridStyle}"
-			CanUserAddRows="False"
-			CanUserSortColumns="False"
-			CanUserResizeRows="False"
-			CanUserDeleteRows="False"
-			CanUserReorderColumns="False"
-			EnableRowVirtualization="False"
-			EnableColumnVirtualization="True"
-			RowHeaderWidth="NaN"
-			MinColumnWidth="100"
-			ColumnWidth="100"
-			ItemsSource="{Binding GridRepresentation.GridData}"
-			AlternationCount="{Binding GridRepresentation.GridData.Count}"
-		>
-			<i:Interaction.Behaviors>
-				<localBehaviours:CellGridBehavior CellGrid="{Binding GridRepresentation}"/>
-			</i:Interaction.Behaviors>
-
-			<DataGrid.RowHeaderStyle>
-				<Style TargetType="{x:Type DataGridRowHeader}">
-					<Setter Property="Content" Value="{Binding Path=AlternationIndex, RelativeSource={RelativeSource AncestorType=DataGridRow}}" />
-				</Style>
-			</DataGrid.RowHeaderStyle>
-
-			<DataGrid.CellStyle>
-				<Style TargetType="DataGridCell">
-					<Setter Property="Template">
-						<Setter.Value>
-							<ControlTemplate TargetType="DataGridCell">
-								<Grid>
-									<TextBox Background="Black">
-										<i:Interaction.Behaviors>
-											<localBehaviours:GridTextBoxBehaviour CellContent="{Binding RelativeSource={RelativeSource AncestorType=DataGridCell, Mode=FindAncestor}}"/>
-										</i:Interaction.Behaviors>
-									</TextBox>
-								</Grid>
-							</ControlTemplate>
-						</Setter.Value>
-					</Setter>
-				</Style>
-			</DataGrid.CellStyle>
-
-		</DataGrid>-->
+		<customComponents:InteractiveGrid Grid.Row="2" GridData="{Binding GridRepresentation.GridData}" GridSplitterBrush="Gray" HeaderBackground="LightGray"/>
 
 	</Grid>
 </Page>

@@ -1,0 +1,37 @@
+﻿<UserControl x:Class="SimpleFM.GridEditor.Components.InteractiveGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SimpleFM.GridEditor.Components"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+	<DockPanel>
+		<ScrollViewer Background="White" DockPanel.Dock="Top" x:Name="ColumnNumberScroller" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+			<StackPanel Orientation="Horizontal">
+				<Grid x:Name="GridHeader">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="{Binding ActualWidth, ElementName=RowNumberGrid}"/>
+					</Grid.ColumnDefinitions>
+				</Grid>
+				<Border Width="50" Background="{Binding Background, ElementName=GridHeader}"/>
+			</StackPanel>
+		</ScrollViewer>
+
+		<DockPanel>
+			<ScrollViewer DockPanel.Dock="Left" x:Name="RowNumberScroller" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
+				<StackPanel>
+					<Grid x:Name="RowNumberGrid" Height="{Binding ActualHeight, ElementName=MainGrid}"/>
+					<Border Height="50" Background="{Binding Background, ElementName=RowNumberGrid}"/>
+				</StackPanel>
+			</ScrollViewer>
+
+			<ScrollViewer ScrollChanged="MainGrid_ScrollChanged" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+				<Grid x:Name="MainGrid" Background="White"/>
+			</ScrollViewer>
+		</DockPanel>
+	</DockPanel>
+	
+    
+</UserControl>
