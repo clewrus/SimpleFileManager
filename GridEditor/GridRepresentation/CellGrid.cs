@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace SimpleFM.GridEditor.GridRepresentation {
 	public abstract class CellGrid : INotifyPropertyChanged {
+
+		public CellGrid () : this(1, 1) { }
+
 		public CellGrid (int width, int height) {
 			Cells = new ObservableCollection<ObservableCollection<Cell>>();
 

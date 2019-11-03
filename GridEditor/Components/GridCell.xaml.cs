@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleFM.GridEditor.GridRepresentation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,12 +15,56 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace SimpleFM.GridEditor.Components {
-	/// <summary>
-	/// Логика взаимодействия для GridCell.xaml
-	/// </summary>
 	public partial class GridCell : UserControl {
-		public GridCell () {
+		public GridCell (GridCoordinates cellPosition) {
 			InitializeComponent();
+
+			IsEditable = false;
+			this.cellPosition = cellPosition;
 		}
+
+		public class GridCellInteractionEventArgs : EventArgs {
+			public int clickNumber;
+			public GridCoordinates cellCoordinates;
+		}
+
+		private void OnGridCellInteraction (int clickNumber) {
+			var eventArgs = new GridCellInteractionEventArgs() {
+				clickNumber = clickNumber,
+				cellCoordinates = cellPosition
+			};
+
+			GridCellInteraction?.Invoke(this, eventArgs);
+		}
+
+		private void TextBox_MouseDown (Object sender, MouseButtonEventArgs e) {
+			if (e.ClickCount == 1) {
+				OnGridCellInteraction(1);
+			}
+		}
+
+		private void TextBox_MouseDoubleClick (Object sender, MouseButtonEventArgs e) {
+			OnGridCellInteraction(2);
+		}
+
+		public event EventHandler<GridCellInteractionEventArgs> GridCellInteraction;
+
+		private bool _IsEditable;
+		public bool IsEditable {
+			get => _IsEditable;
+			set {
+				_IsEditable = value;
+
+				if (_IsEditable) {
+					ContentBox.IsReadOnly = false;
+					ContentBox.HorizontalContentAlignment = HorizontalAlignment.Left;
+				} else {
+					ContentBox.IsReadOnly = true;
+					ContentBox.HorizontalContentAlignment = HorizontalAlignment.Right;
+				}
+			}
+		}
+
+		private GridCoordinates cellPosition;
 	}
 }

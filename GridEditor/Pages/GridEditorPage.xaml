@@ -29,6 +29,9 @@
 
 		<Menu Grid.Row="0" Style="{StaticResource MenuStyle}">
 			<MenuItem Header="File"/>
+			<MenuItem Header="View">
+				<MenuItem Header="Resize" Command="{Binding ResizeCommand}"/>
+			</MenuItem>
 		</Menu>
 
 		<Border Grid.Row="1" Padding="3,3" Margin="2" BorderThickness="1" BorderBrush="AliceBlue" >

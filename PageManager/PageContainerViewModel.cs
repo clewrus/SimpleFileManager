@@ -4,11 +4,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace SimpleFM.ViewModels {
-	public class PageContainerViewModel : INotifyPropertyChanged {
-		
+	public class PageContainerViewModel : INotifyPropertyChanged {		
 		public PageContainerViewModel (Page initialPage, string windowName) {
 			SourcePage = initialPage;
 			this.WindowName = windowName;

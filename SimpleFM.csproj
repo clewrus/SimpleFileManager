@@ -74,9 +74,13 @@
       <DependentUpon>GridCell.xaml</DependentUpon>
     </Compile>
     <Compile Include="GridEditor\Converters\CellCollectionToDataTableConverter.cs" />
+    <Compile Include="GridEditor\DialogWindows\ResizeDialog.xaml.cs">
+      <DependentUpon>ResizeDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GridEditor\GridRepresentation\CalculatingGrid.cs" />
     <Compile Include="GridEditor\GridRepresentation\Cell.cs" />
     <Compile Include="GridEditor\GridRepresentation\CellGrid.cs" />
+    <Compile Include="GridEditor\GridRepresentation\GridCoordinates.cs" />
     <Compile Include="GridEditor\GridRepresentation\GridMemento.cs" />
     <Compile Include="GridEditor\GridRepresentation\HistoryCalculatingGrid.cs" />
     <Compile Include="GridEditor\GridRepresentation\HistoryCellGrid.cs" />
@@ -127,6 +131,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="GridEditor\Components\GridCell.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GridEditor\DialogWindows\ResizeDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

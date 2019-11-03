@@ -1,7 +1,5 @@
 ﻿using SimpleFM.FileManager.ModelCovers;
 using SimpleFM.GridEditor.ViewModels;
-using SimpleFM.ModelCovers;
-using SimpleFM.ViewModels;
 using System.Windows.Controls;
 
 

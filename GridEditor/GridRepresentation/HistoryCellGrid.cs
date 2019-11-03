@@ -30,7 +30,9 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 
 		public ObservableCollection<ObservableCollection<Cell>> GridData {
-			get => Grid.Cells;
+			get {
+				return Grid.Cells;
+			}
 		}
 
 		public bool MoveToPreviousState () {
@@ -65,8 +67,8 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			set => Grid.Height = Math.Max(1, Math.Min(value, MAX_GRID_HEIGHT));
 		}
 
-		public static readonly int MAX_GRID_WIDTH = 1000;
-		public static readonly int MAX_GRID_HEIGHT = 2000;
+		public static readonly int MAX_GRID_WIDTH = 60;
+		public static readonly int MAX_GRID_HEIGHT = 60;
 
 		public CellGrid Grid {get; private set;}
 

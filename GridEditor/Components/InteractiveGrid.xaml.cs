@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -26,12 +27,12 @@ namespace SimpleFM.GridEditor.Components {
 			gridHeaderStructure = new List<(UIElement, UIElement)>(256);
 			rowNumberStructure = new List<(UIElement, UIElement)>(256);
 
-			UpdateGrid();
+			UpdateGridSize();
 			SubscribeToChangeEvents();
 		}
 
 		#region Dependency propertes events handlers
-		private void SubscribeToChangeEvents () {
+		private void SubscribeToChangeEvents () { 
 			var gridDataDescriptor = DependencyPropertyDescriptor.FromProperty(GridDataProperty, typeof(InteractiveGrid));
 			gridDataDescriptor.AddValueChanged(this, GridDataChangedHandler);
 
@@ -43,7 +44,28 @@ namespace SimpleFM.GridEditor.Components {
 		}
 
 		private void GridDataChangedHandler (Object sender, EventArgs e) {
-			UpdateGrid();
+			GridData.CollectionChanged -= GridDataCollectionChangedHandler;
+			GridData.CollectionChanged += GridDataCollectionChangedHandler;
+
+			foreach (var row in GridData) {
+				row.CollectionChanged -= GridDataCollectionChangedHandler;
+				row.CollectionChanged += GridDataCollectionChangedHandler;
+			}
+
+			UpdateGridSize();
+		}
+
+		private void GridDataCollectionChangedHandler (Object sender, NotifyCollectionChangedEventArgs e) {
+			if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Remove) {
+				int width = GridData[0].Count;
+				foreach (var row in GridData) {
+					if (row.Count != width) {
+						return;
+					}
+				}
+
+				UpdateGridSize();
+			}
 		}
 
 		private void HeaderBackgroundChangedHandler (Object sender, EventArgs e) {
@@ -69,7 +91,7 @@ namespace SimpleFM.GridEditor.Components {
 		}
 		#endregion
 
-		private void UpdateGrid () {
+		private void UpdateGridSize () {
 			AdjustWidth();
 			AdjustHeight();
 		}
@@ -82,21 +104,9 @@ namespace SimpleFM.GridEditor.Components {
 			ColumnNumberScroller.ScrollToHorizontalOffset(mainScrollView.HorizontalOffset);
 		}
 
-		private UIElement CreateCell (Cell context) {
-			var nwCell = new TextBox();
-			
+		private UIElement CreateCell (Cell context, GridCoordinates cellPosition) {
+			var nwCell = new GridCell(cellPosition);
 			nwCell.DataContext = context;
-			nwCell.MinHeight = MIN_CELL_HEIGHT;
-			nwCell.Height = MIN_CELL_HEIGHT;
-
-			nwCell.MinWidth = MIN_CELL_WIDTH;
-			nwCell.Width = MIN_CELL_WIDTH;
-			nwCell.Text = context.Value;
-
-			var binding = new Binding("Value");
-			binding.Source = context;
-			nwCell.SetBinding(TextBox.TextProperty, binding);
-
 			return nwCell;
 		}
 
@@ -176,19 +186,10 @@ namespace SimpleFM.GridEditor.Components {
 		}
 
 		private UIElement CreateGridColumnHeaderContent (int headerIndex) {
-			string name = "";
-			int numOfLetters = 'Z' - 'A' + 1;
-
-			do {
-				int letterShift = (headerIndex < numOfLetters && name.Length > 0) ? -1 : 0;
-				var leadingLetter = (char)((int)'A' + headerIndex % numOfLetters + letterShift);
-
-				name = $"{leadingLetter}{name}";
-				headerIndex /= numOfLetters;
-			} while (headerIndex > 0);
+			var columnCoords = new GridCoordinates(headerIndex, 0);
 
 			var content = new TextBlock() {
-				Text = name,
+				Text = columnCoords.GetStringCoords().Item1,
 				TextAlignment = TextAlignment.Center,
 			};			
 
@@ -204,7 +205,7 @@ namespace SimpleFM.GridEditor.Components {
 
 			for (var i = 0; i < gridStructure.Count; i++) {
 
-				UIElement nwCell = CreateCell(GridData[i][targetColumn]);
+				UIElement nwCell = CreateCell(GridData[i][targetColumn], new GridCoordinates(targetColumn, i));
 				Grid.SetColumn(nwCell, targetColumn);
 				Grid.SetRow(nwCell, i);
 				gridStructure[i].Add(nwCell);
@@ -224,6 +225,7 @@ namespace SimpleFM.GridEditor.Components {
 		private void RemoveLastColumnFromGrid () {
 			GridHeader.Children.Remove(gridHeaderStructure[gridHeaderStructure.Count - 1].Item1);
 			GridHeader.Children.Remove(gridHeaderStructure[gridHeaderStructure.Count - 1].Item2);
+			GridHeader.ColumnDefinitions.RemoveAt(GridHeader.ColumnDefinitions.Count - 1);
 
 			gridHeaderStructure.RemoveAt(gridHeaderStructure.Count - 1);
 			MainGrid.ColumnDefinitions.RemoveAt(MainGrid.ColumnDefinitions.Count - 1);
@@ -293,7 +295,7 @@ namespace SimpleFM.GridEditor.Components {
 			var nwRow = new List<UIElement>(gridWidth);
 
 			for (int i = 0; i < gridWidth; i++) {
-				UIElement nwCell = CreateCell(GridData[gridHeight - 1][i]);
+				UIElement nwCell = CreateCell(GridData[gridHeight - 1][i], new GridCoordinates(i, gridHeight - 1));
 
 				Grid.SetRow(nwCell, gridHeight - 1);
 				Grid.SetColumn(nwCell, i);
@@ -307,7 +309,7 @@ namespace SimpleFM.GridEditor.Components {
 
 		private void RemoveLastRowCells () {
 			int gridHeight = MainGrid.RowDefinitions.Count;
-			foreach (var cell in gridStructure[gridHeight]) {
+			foreach (var cell in gridStructure[gridHeight - 1]) {
 				MainGrid.Children.Remove(cell);
 			}
 			gridStructure.RemoveAt(gridStructure.Count - 1);
@@ -316,6 +318,7 @@ namespace SimpleFM.GridEditor.Components {
 		private void RemoveLastRowFromGrid () {
 			RowNumberGrid.Children.Remove(rowNumberStructure[rowNumberStructure.Count - 1].Item1);
 			RowNumberGrid.Children.Remove(rowNumberStructure[rowNumberStructure.Count - 1].Item2);
+			RowNumberGrid.RowDefinitions.RemoveAt(RowNumberGrid.RowDefinitions.Count - 1);
 
 			rowNumberStructure.RemoveAt(rowNumberStructure.Count - 1);
 			MainGrid.RowDefinitions.RemoveAt(MainGrid.RowDefinitions.Count - 1);
