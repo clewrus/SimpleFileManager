@@ -11,7 +11,7 @@
 		<DockPanel DockPanel.Dock="Top">
 			<Border DockPanel.Dock="Left" Width="{Binding ActualWidth, ElementName=RowNumberGrid}" Background="{Binding Background, ElementName=GridHeader}"/>
 			<ScrollViewer Background="White" x:Name="ColumnNumberScroller" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-				<DockPanel>
+				<DockPanel MouseWheel="DoNothingOnScrollWheel">
 					<Grid DockPanel.Dock="Left" x:Name="GridHeader"/>
 					<Border Width="50" Background="{Binding Background, ElementName=GridHeader}"/>
 				</DockPanel>
@@ -20,7 +20,7 @@
 
 		<DockPanel>
 			<ScrollViewer DockPanel.Dock="Left" x:Name="RowNumberScroller" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
-				<StackPanel>
+				<StackPanel MouseWheel="DoNothingOnScrollWheel">
 					<Grid x:Name="RowNumberGrid" Height="{Binding ActualHeight, ElementName=MainGrid}"/>
 					<Border Height="50" Background="{Binding Background, ElementName=RowNumberGrid}"/>
 				</StackPanel>

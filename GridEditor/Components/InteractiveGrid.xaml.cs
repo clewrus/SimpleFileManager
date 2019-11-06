@@ -27,6 +27,8 @@ namespace SimpleFM.GridEditor.Components {
 			gridHeaderStructure = new List<(UIElement, UIElement)>(256);
 			rowNumberStructure = new List<(UIElement, UIElement)>(256);
 
+			selectManager = new CellSelectManager();
+
 			UpdateGridSize();
 			SubscribeToChangeEvents();
 		}
@@ -41,6 +43,9 @@ namespace SimpleFM.GridEditor.Components {
 
 			var gridSplitterBrushDescription = DependencyPropertyDescriptor.FromProperty(GridSplitterBrushProperty, typeof(InteractiveGrid));
 			gridSplitterBrushDescription.AddValueChanged(this, GridSplitterBrushChangedHandler);
+
+			var expressionTextBoxDescription = DependencyPropertyDescriptor.FromProperty(ExpressionTextBoxProperty, typeof(InteractiveGrid));
+			expressionTextBoxDescription.AddValueChanged(this, ExpressionTextBoxChanged);
 		}
 
 		private void GridDataChangedHandler (Object sender, EventArgs e) {
@@ -89,11 +94,20 @@ namespace SimpleFM.GridEditor.Components {
 			changeBrush(gridHeaderStructure);
 			changeBrush(rowNumberStructure);
 		}
+
+		private void ExpressionTextBoxChanged (Object sender, EventArgs e) {
+			if (selectManager == null) return;
+			selectManager.ExpressionTextBox = ExpressionTextBox;
+		}
 		#endregion
 
 		private void UpdateGridSize () {
 			AdjustWidth();
 			AdjustHeight();
+		}
+
+		private void DoNothingOnScrollWheel (Object sender, MouseWheelEventArgs e) {
+			e.Handled = true;
 		}
 
 		private void MainGrid_ScrollChanged (object sender, ScrollChangedEventArgs e) {
@@ -105,9 +119,19 @@ namespace SimpleFM.GridEditor.Components {
 		}
 
 		private UIElement CreateCell (Cell context, GridCoordinates cellPosition) {
-			var nwCell = new GridCell(cellPosition);
-			nwCell.DataContext = context;
+			var nwCell = new GridCell(cellPosition) {
+				DataContext = context
+			};
+
+			selectManager.SubscribeToCell(nwCell);
 			return nwCell;
+		}
+
+		private void ReleaseCell (UIElement element) {
+			var gridCell = element as GridCell;
+			if (gridCell == null) return;
+
+			selectManager.UnsubscribeCell(gridCell);
 		}
 
 		#region Resizing
@@ -218,6 +242,7 @@ namespace SimpleFM.GridEditor.Components {
 		private void RemoveLastColumnCells () {
 			foreach (var row in gridStructure) {
 				MainGrid.Children.Remove(row[row.Count - 1]);
+				ReleaseCell(row[row.Count - 1]);
 				row.RemoveAt(row.Count - 1);
 			}
 		}
@@ -310,6 +335,7 @@ namespace SimpleFM.GridEditor.Components {
 		private void RemoveLastRowCells () {
 			int gridHeight = MainGrid.RowDefinitions.Count;
 			foreach (var cell in gridStructure[gridHeight - 1]) {
+				ReleaseCell(cell);
 				MainGrid.Children.Remove(cell);
 			}
 			gridStructure.RemoveAt(gridStructure.Count - 1);
@@ -355,10 +381,22 @@ namespace SimpleFM.GridEditor.Components {
 		public static readonly DependencyProperty HeaderBackgroundProperty = DependencyProperty.Register(
 			"HeaderBackground", typeof(Brush), typeof(InteractiveGrid), new PropertyMetadata(null)
 		);
+
+		public TextBox ExpressionTextBox {
+			get { return (TextBox)GetValue(ExpressionTextBoxProperty); }
+			set { SetValue(ExpressionTextBoxProperty, value); }
+		}
+
+		public static readonly DependencyProperty ExpressionTextBoxProperty =
+			DependencyProperty.Register("ExpressionTextBox", typeof(TextBox), typeof(InteractiveGrid), new PropertyMetadata());
+
+
 		#endregion
 
 		private static readonly double MIN_CELL_HEIGHT = 22;
 		private static readonly double MIN_CELL_WIDTH = 100;
+
+		private CellSelectManager selectManager;
 
 		private List<List<UIElement>> gridStructure;
 		private List<(UIElement, UIElement)> gridHeaderStructure;

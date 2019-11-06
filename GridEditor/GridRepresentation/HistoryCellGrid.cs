@@ -57,6 +57,15 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			return true;
 		}
 
+		public (int, int) Dimentions {
+			get => Grid.Dimentions;
+			set {
+				int validWidth = Math.Max(1, Math.Min(value.Item1, MAX_GRID_WIDTH));
+				int validHeight = Math.Max(1, Math.Min(value.Item2, MAX_GRID_HEIGHT));
+				Grid.Dimentions = (validWidth, validHeight);
+			}
+		}
+
 		public int Width {
 			get => Grid.Width;
 			set => Grid.Width = Math.Max(1, Math.Min(value, MAX_GRID_WIDTH));

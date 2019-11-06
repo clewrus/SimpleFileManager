@@ -67,6 +67,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="GridEditor\Behaviors\GridTextBoxBehavior.cs" />
+    <Compile Include="GridEditor\Components\CellSelectManager.cs" />
     <Compile Include="GridEditor\Components\InteractiveGrid.xaml.cs">
       <DependentUpon>InteractiveGrid.xaml</DependentUpon>
     </Compile>

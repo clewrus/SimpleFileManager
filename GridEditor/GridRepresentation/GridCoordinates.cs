@@ -54,6 +54,17 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			return rowIndex;
 		}
 
+		public override Boolean Equals (Object obj) {
+			if (obj is GridCoordinates anotherCoords) {
+				return anotherCoords.x == this.x && anotherCoords.y == y;
+			}
+			return false;
+		}
+
+		public override Int32 GetHashCode () {
+			return x.GetHashCode() ^ y.GetHashCode();
+		}
+
 		private int x;
 		private int y;
 	}

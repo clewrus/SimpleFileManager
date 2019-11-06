@@ -19,7 +19,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			if (currentNode == null) {
 				Debug.Assert(mementos.Count == 0);
 
-				mementos.AddLast(currentNode);
+				mementos.AddLast(nwMemento);
 				currentNode = mementos.Last;
 			} else {
 				while (mementos.Last != currentNode) {

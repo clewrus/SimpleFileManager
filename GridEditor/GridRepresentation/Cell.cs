@@ -25,6 +25,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			return String.IsNullOrEmpty(Value) && String.IsNullOrEmpty(ExpressionStr);
 		}
 
+		public bool ExpressionIsFormula () {
+			return _ExpressionStr != null && _ExpressionStr.Length > 0 && _ExpressionStr[0] == '=';
+		}
+
 		#region Value property
 		private string _Value;
 		public string Value {
@@ -40,7 +44,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public string ValueWithinCode {
 			set {
 				if (_Value == value) return;
-				_Value = SpaceIsOnlyWhiteSymbol(value);
+				_Value = (value == null) ? null : SpaceIsOnlyWhiteSymbol(value);
 				OnPropertyChanged("Value");
 			}
 		}
@@ -52,7 +56,16 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			get => _ExpressionStr;
 			set {
 				if (_ExpressionStr == value) return;
+
+				bool prevWasFormula = ExpressionIsFormula();
 				_ExpressionStr = SpaceIsOnlyWhiteSymbol(value);
+
+				if (!prevWasFormula && ExpressionIsFormula()) {
+					ValueWithinCode = null;
+				} else if (!ExpressionIsFormula()) {
+					ValueWithinCode = ExpressionStr;
+				}
+
 				OnPropertyChanged();
 				OnChangedByUser();
 			}

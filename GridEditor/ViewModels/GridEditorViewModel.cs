@@ -47,10 +47,14 @@ namespace SimpleFM.GridEditor.ViewModels {
 				(arg) => {
 					GetNewSize(out int width, out int height);
 
-					if (GridRepresentation.Width != width) {
+					bool widthChanged = GridRepresentation.Width != width;
+					bool heightChanged = GridRepresentation.Height != height;
+
+					if (widthChanged && heightChanged) {
+						GridRepresentation.Dimentions = (width, height);
+					} else if (widthChanged) {
 						GridRepresentation.Width = width;
-					}
-					if (GridRepresentation.Height != height) {
+					} else if (heightChanged) {
 						GridRepresentation.Height = height;
 					}
 				}

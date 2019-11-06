@@ -28,10 +28,18 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				this.content = new Dictionary<(int, int), CellInfo>(another.content);
 			}
 
+			public override String ToString () {
+				return $"width: {this.width} height: {this.height} contentCount: {this.content.Count}";
+			}
+
 			public int width;
 			public int height;
 
 			public Dictionary<(int, int), CellInfo> content;
+		}
+
+		public override String ToString () {
+			return Data.ToString();
 		}
 
 		public object Data { get; private set; }

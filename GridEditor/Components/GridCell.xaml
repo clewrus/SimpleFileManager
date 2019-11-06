@@ -5,14 +5,30 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SimpleFM.GridEditor.Components"
              mc:Ignorable="d" 
-             d:DesignHeight="20" d:DesignWidth="100">
-	<Border x:Name="CellBorder" BorderThickness="1" BorderBrush="Gray" Background="White">
+             d:DesignHeight="20" d:DesignWidth="100"
+			 Name="SelfName">
+	<Border x:Name="CellBorder" Cursor="Cross" BorderThickness="1" BorderBrush="Gray" Background="White">
 		<TextBox x:Name="ContentBox"
 			PreviewMouseLeftButtonDown="TextBox_MouseDown"
 			MouseDoubleClick="TextBox_MouseDoubleClick"
+			KeyDown="ContentBox_KeyDown"
 			Margin="1"
+			HorizontalScrollBarVisibility="Disabled"
+			VerticalScrollBarVisibility="Disabled"
 			VerticalContentAlignment="Center"
-			BorderThickness="0"
-		/>
+			BorderThickness="0">
+
+			<TextBox.Style>
+				<Style TargetType="TextBox">
+					<Style.Triggers>
+						<Trigger Property="IsReadOnly" Value="True">
+							<Setter Property="Cursor" Value="Cross"/>
+						</Trigger>
+					</Style.Triggers>
+				</Style>
+			</TextBox.Style>
+
+		</TextBox>
+
 	</Border>
 </UserControl>

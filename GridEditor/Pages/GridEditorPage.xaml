@@ -43,11 +43,11 @@
 
 				<TextBox Margin="0,0,13,0" Style="{StaticResource SimpleTextBox}"/>
 				<GridSplitter Grid.Column="0" Margin="5,0" HorizontalAlignment="Right" VerticalAlignment="Stretch" BorderBrush="Transparent" Width="3"/>
-				<TextBox Grid.Column="1"/>
+				<TextBox Grid.Column="1" Name="ExpressionTextBox"/>
 			</Grid>
 		</Border>
 
-		<customComponents:InteractiveGrid Grid.Row="2" GridData="{Binding GridRepresentation.GridData}" GridSplitterBrush="Gray" HeaderBackground="LightGray"/>
+		<customComponents:InteractiveGrid Grid.Row="2" ExpressionTextBox="{Binding ElementName=ExpressionTextBox}" GridData="{Binding GridRepresentation.GridData}" GridSplitterBrush="Gray" HeaderBackground="LightGray"/>
 
 	</Grid>
 </Page>

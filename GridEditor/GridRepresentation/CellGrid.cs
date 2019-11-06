@@ -35,6 +35,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			UpdatedByUser?.Invoke(this, new UpdatedByUserEventArgs(changedCell));
 		}
 
+		private void OnUpdatedByUser (int width, int height) {
+			UpdatedByUser?.Invoke(this, new UpdatedByUserEventArgs(width, height));
+		}
+
 		protected abstract Cell CreateCell ();
 
 		private void AddNewCellToList (IList<Cell> targetList) {
@@ -158,7 +162,23 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				}
 			}
 		}
+
 		#endregion
+
+		public (int, int) Dimentions {
+			get => (Width, Height);
+			set {
+				ChangeCellsWidth(value.Item1);
+				_Width = value.Item1;
+				OnPropertyChanged("Width");
+
+				ChangeCellsHeight(value.Item2);
+				_Height = value.Item2;
+				OnPropertyChanged("Height");
+				
+				OnUpdatedByUser(Width, Height);
+			}
+		}
 
 		private int _Height;
 		public int Height {
@@ -167,6 +187,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				ChangeCellsHeight(value);
 				_Height = value;
 				OnPropertyChanged();
+				OnUpdatedByUser(Width, Height);
 			}
 		}
 
@@ -177,6 +198,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				ChangeCellsWidth(value);
 				_Width = value;
 				OnPropertyChanged();
+				OnUpdatedByUser(Width, Height);
 			}
 		}
 
