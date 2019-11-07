@@ -66,6 +66,20 @@ namespace SimpleFM.GridEditor.Components {
 		#endregion
 
 		#region ExpressionTextBox event handlers
+		private void SubscribeExpressionTextBox () {
+			ExpressionTextBox.IsKeyboardFocusWithinChanged += ExpressionTextBoxKeyboardFocusWithinChangedHandler;
+			ExpressionTextBox.TextChanged += ExpressionTextBoxChangedHandler;
+			ExpressionTextBox.KeyDown += ExpressionTextBoxKeyDownHandler;
+			ExpressionTextBox.PreviewLostKeyboardFocus += ExpressionTextBoxLostKeyboardFocusHandler;
+		}
+
+		private void UnsubscribeExpressionTextBox () {
+			ExpressionTextBox.IsKeyboardFocusWithinChanged -= ExpressionTextBoxKeyboardFocusWithinChangedHandler;
+			ExpressionTextBox.TextChanged -= ExpressionTextBoxChangedHandler;
+			ExpressionTextBox.KeyDown -= ExpressionTextBoxKeyDownHandler;
+			ExpressionTextBox.PreviewLostKeyboardFocus -= ExpressionTextBoxLostKeyboardFocusHandler;
+		}
+
 		private void ExpressionTextBoxKeyboardFocusWithinChangedHandler (object sender, DependencyPropertyChangedEventArgs e) {
 			if (sender != ExpressionTextBox) return;
 
@@ -155,6 +169,76 @@ namespace SimpleFM.GridEditor.Components {
 			return targetText[0] == '=';
 		}
 
+		private int FindCurrentCaretIndex () {
+			if (ExpressionTextBox.IsKeyboardFocusWithin) {
+				return ExpressionTextBox.CaretIndex;
+			} else if (SelectedCell != null && SelectedCell.IsEditable && SelectedCell.IsKeyboardFocusWithin) {
+				return SelectedCell.CaretIndex;
+			}
+
+			return 0;
+		}
+
+		private void SetCurrentCaretIndex (int nwIndex) {
+			if (ExpressionTextBox.IsKeyboardFocusWithin) {
+				ExpressionTextBox.CaretIndex = nwIndex;
+			} else if (SelectedCell != null && SelectedCell.IsEditable && SelectedCell.IsKeyboardFocusWithin) {
+				SelectedCell.CaretIndex = nwIndex;
+			}
+		}
+
+		public bool TryMoveSelection (Direction dir) {
+			if (SelectedCell == null) {
+				return false;
+			}
+
+			if (!CoordsInDirectionExist(dir, out GridCoordinates targetCoordinates)) {
+				return false;
+			}
+
+			SelectedCell.UncheckCell();
+			SelectedCell = watchedCells[targetCoordinates];
+			SelectedCell.IsSelected = true;
+
+			UnpointCell();
+			UpdateBinding();
+
+			return true;
+		}
+
+		public void EditSelectedCell () {
+			if (SelectedCell == null || SelectedCell.IsEditable) return;
+
+			SelectedCell.IsEditable = true;
+			UpdateBinding();
+			try {
+				Keyboard.Focus(SelectedCell.ContentBox);
+			} catch { }
+		}
+
+		private bool CoordsInDirectionExist (Direction dir, out GridCoordinates targetCoordinates) {
+			(int, int) position = SelectedCell.CellPosition.GetNumericCoords();
+			switch (dir) {
+				case Direction.Left: position.Item1 -= 1; break;
+				case Direction.Top: position.Item2 -= 1; break;
+				case Direction.Right: position.Item1 += 1; break;
+				case Direction.Bottom: position.Item2 += 1; break;
+			}
+
+			targetCoordinates = new GridCoordinates(position.Item1, position.Item2);
+
+			if (position.Item1 < 0 || position.Item2 < 0) {
+				return false;
+			}
+
+			if (!watchedCells.ContainsKey(targetCoordinates)) {
+				return false;
+			}
+
+			return true;
+		}
+
+		#region Cell pointing
 		private void UnpointCell () {
 			if (PointedCell != null) {
 				PointedCell.IsPointed = false;
@@ -202,24 +286,6 @@ namespace SimpleFM.GridEditor.Components {
 			PointedCell.IsPointed = true;
 		}
 
-		private int FindCurrentCaretIndex () {
-			if (ExpressionTextBox.IsKeyboardFocusWithin) {
-				return ExpressionTextBox.CaretIndex;
-			} else if (SelectedCell != null && SelectedCell.IsEditable && SelectedCell.IsKeyboardFocusWithin) {
-				return SelectedCell.CaretIndex;
-			}
-
-			return 0;
-		}
-
-		private void SetCurrentCaretIndex (int nwIndex) {
-			if (ExpressionTextBox.IsKeyboardFocusWithin) {
-				ExpressionTextBox.CaretIndex = nwIndex;
-			} else if (SelectedCell != null && SelectedCell.IsEditable && SelectedCell.IsKeyboardFocusWithin) {
-				SelectedCell.CaretIndex = nwIndex;
-			}
-		}
-
 		private void AddPointedCellNameToExpressionTextBox (GridCell pointedCell, out int nwCaretIndex) {
 			settingPointedCell = true;
 
@@ -230,6 +296,7 @@ namespace SimpleFM.GridEditor.Components {
 			nwCaretIndex = textBeforePointing.Prefix.Length + cellName.Length;
 			settingPointedCell = false;
 		}
+		#endregion
 
 		#region Cell event handlers
 		private void GridCellInteractionHandler (Object sender, GridCell.GridCellInteractionEventArgs e) {
@@ -283,18 +350,20 @@ namespace SimpleFM.GridEditor.Components {
 
 		private void GridCellEditFinishedHandler (GridCell gridCell, GridCell.GridCellInteractionEventArgs e) {
 			if (gridCell == null) return;
-
-			Debug.Assert(gridCell == SelectedCell);
-			Debug.Assert(gridCell.IsEditable);
+			if (gridCell != SelectedCell) return;
+			if (!gridCell.IsEditable) return;
 
 			UnpointCell();
 
-			Keyboard.ClearFocus();
 			gridCell.IsEditable = false;
 			gridCell.IsSelected = true;
 			UpdateBinding();
+
+			TryMoveSelection(Direction.Bottom);
 		}
 		#endregion
+
+		public enum Direction { Left, Top, Right, Bottom }
 
 		private TextBox _ExpressionTextBox;
 		public TextBox ExpressionTextBox {
@@ -302,20 +371,14 @@ namespace SimpleFM.GridEditor.Components {
 			set {
 				if (_ExpressionTextBox != null) {
 					BindingOperations.ClearBinding(_ExpressionTextBox, TextBox.TextProperty);
-					_ExpressionTextBox.IsKeyboardFocusWithinChanged -= ExpressionTextBoxKeyboardFocusWithinChangedHandler;
-					_ExpressionTextBox.TextChanged -= ExpressionTextBoxChangedHandler;
-					_ExpressionTextBox.KeyDown -= ExpressionTextBoxKeyDownHandler;
-					_ExpressionTextBox.PreviewLostKeyboardFocus -= ExpressionTextBoxLostKeyboardFocusHandler;
+					UnsubscribeExpressionTextBox();
 				}
 
 				resentlyPointed = false;
 				_ExpressionTextBox = value;
 
 				if (_ExpressionTextBox != null) {
-					_ExpressionTextBox.IsKeyboardFocusWithinChanged += ExpressionTextBoxKeyboardFocusWithinChangedHandler;
-					_ExpressionTextBox.TextChanged += ExpressionTextBoxChangedHandler;
-					_ExpressionTextBox.KeyDown += ExpressionTextBoxKeyDownHandler;
-					_ExpressionTextBox.PreviewLostKeyboardFocus += ExpressionTextBoxLostKeyboardFocusHandler;
+					SubscribeExpressionTextBox();
 				}
 
 				UpdateBinding();

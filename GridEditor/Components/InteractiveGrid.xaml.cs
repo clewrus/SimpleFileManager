@@ -118,6 +118,25 @@ namespace SimpleFM.GridEditor.Components {
 			ColumnNumberScroller.ScrollToHorizontalOffset(mainScrollView.HorizontalOffset);
 		}
 
+		private void MainGrid_PreviewKeyDown (Object sender, KeyEventArgs e) {
+			if (selectManager.SelectedCell.IsEditable) return;
+
+			bool cellMoved = false;
+			switch (e.Key) {
+				case Key.Left: cellMoved |= selectManager.TryMoveSelection(CellSelectManager.Direction.Left); break;
+				case Key.Up: cellMoved |= selectManager.TryMoveSelection(CellSelectManager.Direction.Top); break;
+				case Key.Right: cellMoved |= selectManager.TryMoveSelection(CellSelectManager.Direction.Right); break;
+				case Key.Down: cellMoved |= selectManager.TryMoveSelection(CellSelectManager.Direction.Bottom); break;
+			}
+
+			if (e.Key == Key.Enter) {
+				selectManager.EditSelectedCell();
+				e.Handled = true;
+			}
+
+			e.Handled |= cellMoved;
+		}
+
 		private UIElement CreateCell (Cell context, GridCoordinates cellPosition) {
 			var nwCell = new GridCell(cellPosition) {
 				DataContext = context
