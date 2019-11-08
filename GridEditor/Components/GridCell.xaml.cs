@@ -26,7 +26,7 @@ namespace SimpleFM.GridEditor.Components {
 			};
 			
 			IsEditable = false;
-			ChangeBinding("Value");
+			ChangeBinding("Value", true);
 			ContentBox.HorizontalContentAlignment = HorizontalAlignment.Right;
 
 			ContentBox.PreviewLostKeyboardFocus += GridCell_PreviewLostKeyboardFocus;
@@ -176,7 +176,7 @@ namespace SimpleFM.GridEditor.Components {
 					SetBorderStyle(editableStyle);
 				} else {
 					ContentBox.IsReadOnly = true;
-					ChangeBinding("Value");
+					ChangeBinding("Value", true);
 					ContentBox.HorizontalContentAlignment = HorizontalAlignment.Right;
 					SetBorderStyle(defaultStyle);
 				}

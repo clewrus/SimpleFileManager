@@ -63,8 +63,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			var info = gridMemento.Data as GridMemento.GridInfo;
 			if (info == null) return;
 
-			Height = info.height;
-			Width = info.width;
+			Dimentions = (info.width, info.height);
 
 			SetCellsContent(info.content);
 		}
@@ -105,8 +104,8 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			int initWidth = Width;
 			int initHeight = Height;
 
-			for (int y = 0; y < initWidth; y++) {
-				for (int x = 0; x < initHeight; x++) {
+			for (int y = 0; y < initHeight; y++) {
+				for (int x = 0; x < initWidth; x++) {
 
 					Cell targetCell = Cells[y][x];
 					if (nwInfo.ContainsKey((x, y))) {
@@ -115,8 +114,8 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 						targetCell.ExpressionStr = cellInfo.expressionStr;
 						targetCell.Value = cellInfo.value;
 					} else {
-						targetCell.ExpressionStr = "";
-						targetCell.Value = "";
+						targetCell.ExpressionStr = null;
+						targetCell.Value = null;
 					}
 				}
 			}

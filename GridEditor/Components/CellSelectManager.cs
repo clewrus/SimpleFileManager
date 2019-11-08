@@ -116,7 +116,12 @@ namespace SimpleFM.GridEditor.Components {
 			if (SelectedCell == null) return;
 
 			if (e.Key == Key.Enter || e.Key == Key.Return) {
-				Keyboard.ClearFocus();
+
+				try {
+					Keyboard.ClearFocus();
+					Keyboard.Focus(SelectedCell);
+				} catch { }
+				
 				SelectedCell.IsEditable = false;
 				SelectedCell.IsSelected = true;
 

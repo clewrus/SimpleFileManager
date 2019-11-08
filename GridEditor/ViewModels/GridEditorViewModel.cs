@@ -42,6 +42,20 @@ namespace SimpleFM.GridEditor.ViewModels {
 			}
 		}
 
+		public ICommand UndoCommand {
+			get => new ViewModelCommand(
+				(arg) => GridRepresentation.MoveToPreviousState(),
+				(arg) => GridRepresentation.HasPreviousState()
+			);
+		}
+
+		public ICommand RedoCommand {
+			get => new ViewModelCommand(
+				(arg) => GridRepresentation.MoveToNextState(),
+				(arg) => GridRepresentation.HasNextState()
+			);
+		}
+
 		public ICommand ResizeCommand {
 			get => new ViewModelCommand(
 				(arg) => {

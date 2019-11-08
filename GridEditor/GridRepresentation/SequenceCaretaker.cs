@@ -15,6 +15,14 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			get => (currentNode == null) ? null : currentNode.Value;
 		}
 
+		public bool HasNextState () {
+			return currentNode != null && currentNode.Next != null;
+		}
+
+		public bool HasPreviousState () {
+			return currentNode != null && currentNode.Previous != null;
+		}
+
 		public void SetNextMemento (IMemento nwMemento) {
 			if (currentNode == null) {
 				Debug.Assert(mementos.Count == 0);

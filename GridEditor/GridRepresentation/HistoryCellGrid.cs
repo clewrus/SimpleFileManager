@@ -10,6 +10,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public HistoryCellGrid (int width, int height) {
 			Grid = CreateGrid(width, height);
 			gridCaretaker = new SequenceCaretaker();
+			SaveGridState();
 
 			isListeningGridUpdates = true;
 			Grid.UpdatedByUser += GridUpdatedByUserHandler;
@@ -30,9 +31,11 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 
 		public ObservableCollection<ObservableCollection<Cell>> GridData {
-			get {
-				return Grid.Cells;
-			}
+			get => Grid.Cells;
+		}
+
+		public bool HasPreviousState () {
+			return gridCaretaker.HasPreviousState();
 		}
 
 		public bool MoveToPreviousState () {
@@ -44,6 +47,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			Grid.SetState(gridCaretaker.CurrentMemento);
 			isListeningGridUpdates = true;
 			return true;
+		}
+
+		public bool HasNextState () {
+			return gridCaretaker.HasNextState();
 		}
 
 		public bool MoveToNextState () {

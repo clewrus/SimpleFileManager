@@ -18,6 +18,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 
 		private string SpaceIsOnlyWhiteSymbol (string value) {
+			if (value == null) {
+				return null;
+			}
+
 			return new string(value.Where(c => c == ' ' || !Char.IsWhiteSpace(c)).ToArray());
 		}
 
@@ -44,7 +48,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public string ValueWithinCode {
 			set {
 				if (_Value == value) return;
-				_Value = (value == null) ? null : SpaceIsOnlyWhiteSymbol(value);
+				_Value = SpaceIsOnlyWhiteSymbol(value);
 				OnPropertyChanged("Value");
 			}
 		}

@@ -31,7 +31,7 @@ namespace SimpleFM.GridEditor.Components {
 			selectManager.SelectedCellChanged += SelectedCellChangedHandler;
 
 			UpdateGridSize();
-			SubscribeToChangeEvents();
+			SubscribeToChangeEvents();			
 		}
 
 		#region Dependency propertes events handlers
@@ -219,8 +219,8 @@ namespace SimpleFM.GridEditor.Components {
 				return;
 			}
 
-			bool cellMoved = HandleArrowKeys(e.Key);
-			e.Handled |= cellMoved;
+			HandleArrowKeys(e.Key);
+			e.Handled = !IsModifierKeyDown();
 		}
 
 		private bool HandleArrowKeys (Key key) {
@@ -373,6 +373,7 @@ namespace SimpleFM.GridEditor.Components {
 			int targetColumn = MainGrid.ColumnDefinitions.Count - 1;
 
 			for (var i = 0; i < gridStructure.Count; i++) {
+				Debug.Assert(gridStructure.Count == GridData.Count);
 
 				UIElement nwCell = CreateCell(GridData[i][targetColumn], new GridCoordinates(targetColumn, i));
 				Grid.SetColumn(nwCell, targetColumn);

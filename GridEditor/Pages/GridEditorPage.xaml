@@ -9,6 +9,7 @@
 	  xmlns:customComponents="clr-namespace:SimpleFM.GridEditor.Components"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
+	  FocusManager.FocusedElement="{Binding ElementName=MainGrid}"
       Title="GridEditor">
 
 	<Page.Resources>
@@ -28,7 +29,10 @@
 		</Grid.RowDefinitions>
 
 		<Menu Grid.Row="0" Style="{StaticResource MenuStyle}">
-			<MenuItem Header="File"/>
+			<MenuItem Header="File">
+				<MenuItem Header="Undo" Command="{Binding UndoCommand}"/>
+				<MenuItem Header="Redo" Command="{Binding RedoCommand}"/>
+			</MenuItem>
 			<MenuItem Header="View">
 				<MenuItem Header="Resize" Command="{Binding ResizeCommand}"/>
 			</MenuItem>
@@ -60,6 +64,8 @@
 			Grid.Row="2"
 			GridSplitterBrush="Gray"
 			HeaderBackground="LightGray"
+			Focusable="True"
+			FocusManager.FocusedElement="{Binding}"
 			ExpressionTextBox="{Binding ElementName=ExpressionTextBox}"
 			GridData="{Binding GridRepresentation.GridData}"/>
 	</Grid>
