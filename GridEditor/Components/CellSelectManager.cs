@@ -17,6 +17,18 @@ namespace SimpleFM.GridEditor.Components {
 			watchedCells = new Dictionary<GridCoordinates, GridCell>();
 		}
 
+		public class SelectedCellChangedEventArgs : EventArgs {
+			public SelectedCellChangedEventArgs (GridCell changedCell) {
+				this.ChangedCell = changedCell;	
+			}
+
+			public GridCell ChangedCell { get; private set; }
+		}
+
+		private void OnSelectedCellChanged (GridCell nwSelectedCell) {
+			SelectedCellChanged?.Invoke(this, new SelectedCellChangedEventArgs(nwSelectedCell));
+		}
+
 		#region Cells Adding and Removing
 		public bool SubscribeToCell (GridCell nwCell) {
 			if (watchedCells.ContainsKey(nwCell.CellPosition) && watchedCells[nwCell.CellPosition] == nwCell) {
@@ -62,6 +74,8 @@ namespace SimpleFM.GridEditor.Components {
 				SelectedCell.IsSelected = true;
 				break;
 			}
+
+			UpdateBinding();
 		}
 		#endregion
 
@@ -203,6 +217,20 @@ namespace SimpleFM.GridEditor.Components {
 			UnpointCell();
 			UpdateBinding();
 
+			return true;
+		}
+
+		public bool TrySelect (GridCoordinates targetCell) {
+			if (!watchedCells.ContainsKey(targetCell)) return false;
+			if (targetCell.Equals(SelectedCell.CellPosition)) return false;
+
+			UnpointCell();
+
+			SelectedCell.UncheckCell();
+			SelectedCell = watchedCells[targetCell];
+			SelectedCell.IsSelected = true;
+
+			UpdateBinding();
 			return true;
 		}
 
@@ -385,8 +413,18 @@ namespace SimpleFM.GridEditor.Components {
 			}
 		}
 
-		public GridCell SelectedCell { get; private set; }
+		private GridCell _SelectedCell;
+		public GridCell SelectedCell { 
+			get => _SelectedCell;
+			private set {
+				_SelectedCell = value;
+				OnSelectedCellChanged(_SelectedCell);
+			}
+		
+		}
 		public GridCell PointedCell { get; private set; }
+
+		public event EventHandler<SelectedCellChangedEventArgs> SelectedCellChanged;
 
 		private bool resentlyPointed;
 		private int lastCaretIndex;

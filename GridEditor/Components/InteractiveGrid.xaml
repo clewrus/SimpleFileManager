@@ -27,7 +27,7 @@
 				</StackPanel>
 			</ScrollViewer>
 
-			<ScrollViewer ScrollChanged="MainGrid_ScrollChanged" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+			<ScrollViewer x:Name="MainScrollView" ScrollChanged="MainGrid_ScrollChanged" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
 				<Grid x:Name="MainGrid" Background="White"/>
 			</ScrollViewer>
 		</DockPanel>

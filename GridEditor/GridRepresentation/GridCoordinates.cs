@@ -39,6 +39,32 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			return (name, (this.y + 1).ToString());
 		}
 
+		public static bool TryParse (string s, out GridCoordinates parsedCoordinates) {
+			parsedCoordinates = new GridCoordinates();
+
+			bool parsingX = true;
+			string xPart = "";
+			string yPart = "";
+
+			foreach (char c in s.Trim()) {
+				if ('A' <= c && c <= 'Z' && parsingX) {
+					xPart += c;
+				} else if (Char.IsWhiteSpace(c)) {
+					parsingX = false;
+				} else if ('1' <= c && c <= '9' && yPart.Length == 0 ) {
+					parsingX = false;
+					yPart += c;
+				} else if ('0' <= c && c <= '9' && !parsingX) {
+					yPart += c;
+				} else {
+					return false;
+				}
+			}
+
+			parsedCoordinates = new GridCoordinates(xPart, yPart);
+			return true;
+		}
+
 		private int ParseRowIndex (string x) {
 			int rowIndex = 0;
 			int numOfLetters = (int)'Z' - (int)'A' + 1;

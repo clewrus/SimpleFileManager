@@ -23,11 +23,12 @@ namespace SimpleFM.GridEditor.Components {
 		public InteractiveGrid () {
 			InitializeComponent();
 
-			gridStructure = new List<List<UIElement>>(1024);
-			gridHeaderStructure = new List<(UIElement, UIElement)>(256);
-			rowNumberStructure = new List<(UIElement, UIElement)>(256);
+			gridStructure = new List<List<UIElement>>(64);
+			gridHeaderStructure = new List<(UIElement, UIElement)>(64);
+			rowNumberStructure = new List<(UIElement, UIElement)>(64);
 
 			selectManager = new CellSelectManager();
+			selectManager.SelectedCellChanged += SelectedCellChangedHandler;
 
 			UpdateGridSize();
 			SubscribeToChangeEvents();
@@ -101,6 +102,72 @@ namespace SimpleFM.GridEditor.Components {
 		}
 		#endregion
 
+		#region Selected cell changed handler
+		private void SelectedCellChangedHandler (object sender, CellSelectManager.SelectedCellChangedEventArgs e) {
+			UpdateScrollView(e);
+
+			(string, string) cellPosition = e.ChangedCell.CellPosition.GetStringCoords();
+			SelectedCell = $"{cellPosition.Item1}{cellPosition.Item2}";
+		}
+
+		private void UpdateScrollView (CellSelectManager.SelectedCellChangedEventArgs e) {
+			Rect cellRect;
+			if (!TryCalculateRelativeCellRect(e.ChangedCell, out cellRect))
+				return;
+
+			var gridRect = new Rect(0, 0, this.ActualWidth, this.ActualHeight);
+			var intersection = Rect.Intersect(gridRect, cellRect);
+
+			if (intersection == cellRect)
+				return;
+
+			ScrollToCell(cellRect);
+		}
+
+		private bool TryCalculateRelativeCellRect (GridCell targetCell, out Rect cellRect) {
+			GeneralTransform cellToGridTransform;
+			try {
+				cellToGridTransform = targetCell.TransformToAncestor(this);
+			} catch {
+				cellRect = Rect.Empty;
+				return false;
+			}
+
+			var localCellRect = new Rect(
+				-SELECTED_CELL_MARGIN,
+				-SELECTED_CELL_MARGIN,
+				targetCell.ActualWidth + 2*SELECTED_CELL_MARGIN,
+				targetCell.ActualHeight + 2*SELECTED_CELL_MARGIN
+			);
+
+			cellRect = cellToGridTransform.TransformBounds(localCellRect);
+			return true;
+		}
+
+		private void ScrollToCell (Rect targetCell) {
+			double deltaX = 0;
+			double deltaY = 0;
+
+			if (targetCell.Left < 0) {
+				deltaX = targetCell.Left;
+			} else if (this.ActualWidth < targetCell.Right) {
+				deltaX = targetCell.Right - (this.ActualWidth);
+			}
+
+			if (targetCell.Top < 0) {
+				deltaY = targetCell.Top;
+			} else if (this.ActualHeight < targetCell.Bottom) {
+				deltaY = targetCell.Bottom - (this.ActualHeight);
+			}
+
+			double resHorOffset = Math.Max(0, MainScrollView.HorizontalOffset + deltaX);
+			double resVertOffset = Math.Max(0, MainScrollView.VerticalOffset + deltaY);
+
+			MainScrollView.ScrollToHorizontalOffset(resHorOffset);
+			MainScrollView.ScrollToVerticalOffset(resVertOffset);
+		}
+		#endregion
+
 		private void UpdateGridSize () {
 			AdjustWidth();
 			AdjustHeight();
@@ -118,24 +185,83 @@ namespace SimpleFM.GridEditor.Components {
 			ColumnNumberScroller.ScrollToHorizontalOffset(mainScrollView.HorizontalOffset);
 		}
 
+		private string ConfirmSelectedCellValue (string nwValue) {
+			if (nwValue == null) {
+				return SelectedCell;
+			}
+
+			if (!GridCoordinates.TryParse(nwValue, out GridCoordinates nwCoords)) {
+				return SelectedCell;
+			}
+
+			var stringCoords = nwCoords.GetStringCoords();
+			if (selectManager.SelectedCell.CellPosition.Equals(nwCoords) || selectManager.TrySelect(nwCoords)) {
+				return $"{stringCoords.Item1}{stringCoords.Item2}";
+			}
+
+			var realSelectedCellPosition = selectManager.SelectedCell.CellPosition.GetStringCoords();
+			return $"{realSelectedCellPosition.Item1}{realSelectedCellPosition.Item2}";
+		}
+
+		#region KeyDown event handler
 		private void MainGrid_PreviewKeyDown (Object sender, KeyEventArgs e) {
 			if (selectManager.SelectedCell.IsEditable) return;
 
+			if (e.Key == Key.Enter) {
+				selectManager.EditSelectedCell();
+				e.Handled = true;
+				return;
+			}
+
+			if ((IsKeyLetterOrDigin(e.Key) || IsKeyAllowedKey(e.Key)) && !IsModifierKeyDown()) {
+				selectManager.EditSelectedCell();
+				e.Handled = false;
+				return;
+			}
+
+			bool cellMoved = HandleArrowKeys(e.Key);
+			e.Handled |= cellMoved;
+		}
+
+		private bool HandleArrowKeys (Key key) {
 			bool cellMoved = false;
-			switch (e.Key) {
+			switch (key) {
 				case Key.Left: cellMoved |= selectManager.TryMoveSelection(CellSelectManager.Direction.Left); break;
 				case Key.Up: cellMoved |= selectManager.TryMoveSelection(CellSelectManager.Direction.Top); break;
 				case Key.Right: cellMoved |= selectManager.TryMoveSelection(CellSelectManager.Direction.Right); break;
 				case Key.Down: cellMoved |= selectManager.TryMoveSelection(CellSelectManager.Direction.Bottom); break;
 			}
-
-			if (e.Key == Key.Enter) {
-				selectManager.EditSelectedCell();
-				e.Handled = true;
-			}
-
-			e.Handled |= cellMoved;
+			return cellMoved;
 		}
+
+		private bool IsKeyLetterOrDigin (Key key) {
+			bool isLetter = Key.A <= key && key <= Key.Z;
+			bool isDigit = Key.D0 <= key && key <= Key.D9 || Key.NumPad0 <= key && key <= Key.NumPad9;
+			return isLetter || isDigit;
+		}
+
+		private bool IsKeyAllowedKey (Key key) {
+			switch (key) {
+				case Key.Space: return true;
+				case Key.OemTilde: return true;
+				case Key.OemCloseBrackets: return true;
+				case Key.OemOpenBrackets: return true;
+				case Key.OemMinus: return true;
+				case Key.OemPlus: return true;
+				case Key.OemPipe: return true;
+				case Key.OemPeriod: return true;
+				case Key.OemComma: return true;
+				case Key.OemQuestion: return true;
+				case Key.OemSemicolon: return true;
+			}
+			return false;
+		}
+
+		private bool IsModifierKeyDown () {
+			return Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl) ||
+					Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt);
+		}
+		#endregion
 
 		private UIElement CreateCell (Cell context, GridCoordinates cellPosition) {
 			var nwCell = new GridCell(cellPosition) {
@@ -406,14 +532,40 @@ namespace SimpleFM.GridEditor.Components {
 			set { SetValue(ExpressionTextBoxProperty, value); }
 		}
 
-		public static readonly DependencyProperty ExpressionTextBoxProperty =
-			DependencyProperty.Register("ExpressionTextBox", typeof(TextBox), typeof(InteractiveGrid), new PropertyMetadata());
+		public static readonly DependencyProperty ExpressionTextBoxProperty = DependencyProperty.Register(
+			"ExpressionTextBox", typeof(TextBox), typeof(InteractiveGrid), new PropertyMetadata()
+		);
 
+		public string SelectedCell {
+			get { return (string)GetValue(SelectedCellProperty); }
+			set { SetValue(SelectedCellProperty, value); }
+		}
 
+		public static readonly DependencyProperty SelectedCellProperty = DependencyProperty.Register(
+			"SelectedCell", typeof(string), typeof(InteractiveGrid), new PropertyMetadata("A1", SelectedCellChangedCallback), new ValidateValueCallback(ValidateSelectedCellCallback)
+		);
+
+		private static Boolean ValidateSelectedCellCallback (Object value) {
+			var targetString = value as string;
+			return targetString != null && GridCoordinates.TryParse(targetString, out GridCoordinates gridCoordinates);
+		}
+
+		private static void SelectedCellChangedCallback (DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			var targetObject = d as InteractiveGrid;
+			if (targetObject == null) return;
+
+			var nwValue = e.NewValue as string;
+			var confirmedValue = targetObject.ConfirmSelectedCellValue(nwValue);
+			if (confirmedValue != nwValue) {
+				targetObject.SelectedCell = confirmedValue;
+			}
+		}
 		#endregion
 
 		private static readonly double MIN_CELL_HEIGHT = 22;
 		private static readonly double MIN_CELL_WIDTH = 100;
+
+		private static readonly double SELECTED_CELL_MARGIN = 30;
 
 		private CellSelectManager selectManager;
 

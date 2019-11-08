@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:SimpleFM.GridEditor.Pages"
 	  xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-	  xmlns:ei="http://schemas.microsoft.com/expression/2010/interactions"
+	  xmlns:behaviors="clr-namespace:SimpleFM.GridEditor.Behaviors"
 	  xmlns:customComponents="clr-namespace:SimpleFM.GridEditor.Components"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
@@ -41,13 +41,26 @@
 					<ColumnDefinition Width="*"/>
 				</Grid.ColumnDefinitions>
 
-				<TextBox Margin="0,0,13,0" Style="{StaticResource SimpleTextBox}"/>
+				<TextBox
+					Margin="0,0,13,0"
+					Style="{StaticResource SimpleTextBox}"
+					Text="{Binding SelectedCell, ElementName=MainGrid, Mode=TwoWay, UpdateSourceTrigger=Explicit}">
+
+					<i:Interaction.Behaviors>
+						<behaviors:EnterUpdateTextBoxBehavior/>
+					</i:Interaction.Behaviors>
+				</TextBox>
 				<GridSplitter Grid.Column="0" Margin="5,0" HorizontalAlignment="Right" VerticalAlignment="Stretch" BorderBrush="Transparent" Width="3"/>
 				<TextBox Grid.Column="1" Name="ExpressionTextBox"/>
 			</Grid>
 		</Border>
 
-		<customComponents:InteractiveGrid Grid.Row="2" ExpressionTextBox="{Binding ElementName=ExpressionTextBox}" GridData="{Binding GridRepresentation.GridData}" GridSplitterBrush="Gray" HeaderBackground="LightGray"/>
-
+		<customComponents:InteractiveGrid 
+			x:Name="MainGrid"
+			Grid.Row="2"
+			GridSplitterBrush="Gray"
+			HeaderBackground="LightGray"
+			ExpressionTextBox="{Binding ElementName=ExpressionTextBox}"
+			GridData="{Binding GridRepresentation.GridData}"/>
 	</Grid>
 </Page>
