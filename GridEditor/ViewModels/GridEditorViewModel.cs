@@ -32,8 +32,8 @@ namespace SimpleFM.GridEditor.ViewModels {
 			var resizeDialog = new ResizeDialog(
 				width,
 				height,
-				(w) => (w > 0 && w <= HistoryCellGrid.MAX_GRID_WIDTH),
-				(h) => (h > 0 && h <= HistoryCellGrid.MAX_GRID_HEIGHT)
+				(minWidth: 1, maxWidth: HistoryCellGrid.MAX_GRID_WIDTH),
+				(minHeight: 1, maxHeight: HistoryCellGrid.MAX_GRID_HEIGHT)
 			);
 
 			if (resizeDialog.ShowDialog() == true) {

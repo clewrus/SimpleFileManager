@@ -68,7 +68,7 @@ namespace SimpleFM.GridEditor.Components {
 
 		private void SellectOtherCell () {
 			SelectedCell.IsSelected = false;
-			SelectedCell = null;
+			
 			foreach (var someCell in watchedCells) {
 				SelectedCell = someCell.Value;
 				SelectedCell.IsSelected = true;
