@@ -41,6 +41,11 @@
 			</MenuItem>
 			<MenuItem Header="View">
 				<MenuItem Header="Resize" Command="{Binding ResizeCommand}"/>
+				<MenuItem Header="Show expressinos only" Command="{Binding ChangeShowExpressionOnlyCommand}">
+					<MenuItem.Icon>
+						<CheckBox IsChecked="{Binding ShowExpressionOnly, Mode=TwoWay}"/>
+					</MenuItem.Icon>
+				</MenuItem>
 			</MenuItem>
 		</Menu>
 
@@ -72,6 +77,7 @@
 			HeaderBackground="LightGray"
 			Focusable="True"
 			FocusManager.FocusedElement="{Binding}"
+			ExpressionOnly="{Binding ShowExpressionOnly}"
 			ExpressionTextBox="{Binding ElementName=ExpressionTextBox}"
 			GridData="{Binding GridRepresentation.GridData}"/>
 	</Grid>

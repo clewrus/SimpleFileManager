@@ -61,6 +61,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				}
 			}
 
+			if (parsingX || !int.TryParse(yPart, out int value)) {
+				return false;
+			}
+
 			parsedCoordinates = new GridCoordinates(xPart, yPart);
 			return true;
 		}

@@ -568,6 +568,19 @@ namespace SimpleFM.GridEditor.Components {
 				targetObject.SelectedCell = confirmedValue;
 			}
 		}
+
+
+
+		public bool ExpressionOnly {
+			get { return (bool)GetValue(ExpressionOnlyProperty); }
+			set { SetValue(ExpressionOnlyProperty, value); }
+		}
+
+		public static readonly DependencyProperty ExpressionOnlyProperty = DependencyProperty.Register(
+			"ExpressionOnly", typeof(bool), typeof(InteractiveGrid), new PropertyMetadata(false)
+		);
+
+
 		#endregion
 
 		private static readonly double MIN_CELL_HEIGHT = 22;

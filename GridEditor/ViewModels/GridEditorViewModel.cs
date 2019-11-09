@@ -98,6 +98,12 @@ namespace SimpleFM.GridEditor.ViewModels {
 			}
 		}
 
+		private bool _ShowExpressionOnly;
+		public bool ShowExpressionOnly {
+			get => _ShowExpressionOnly;
+			set => SetProperty(ref _ShowExpressionOnly, value);
+		}
+
 		private HistoryCellGrid _GridRepresentation;
 		public HistoryCellGrid GridRepresentation {
 			get => _GridRepresentation;
@@ -186,6 +192,12 @@ namespace SimpleFM.GridEditor.ViewModels {
 			get => new ViewModelCommand(
 				(arg) => GridRepresentation.MoveToNextState(),
 				(arg) => GridRepresentation.HasNextState()
+			);
+		}
+
+		public ICommand ChangeShowExpressionOnlyCommand {
+			get => new ViewModelCommand(
+				(arg) => ShowExpressionOnly = !ShowExpressionOnly
 			);
 		}
 
