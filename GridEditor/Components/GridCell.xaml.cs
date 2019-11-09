@@ -80,6 +80,13 @@ namespace SimpleFM.GridEditor.Components {
 		}
 
 		private void ChangeBinding (string bindingTarget, bool twoWay=false) {
+			if (ShowExpressionOnly) {
+				bindingTarget = "ExpressionStr";
+				twoWay = true;
+			} else {
+				realBinding = (target: bindingTarget, mode: twoWay);
+			}
+
 			ContentBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
 			BindingOperations.ClearBinding(ContentBox, TextBox.TextProperty);
 
@@ -89,6 +96,10 @@ namespace SimpleFM.GridEditor.Components {
 			};
 
 			ContentBox.SetBinding(TextBox.TextProperty, nwBinding);
+		}
+
+		private void SetRealBinding () {
+			
 		}
 
 		public void UncheckCell () {
@@ -200,7 +211,22 @@ namespace SimpleFM.GridEditor.Components {
 			set => ContentBox.CaretIndex = value;
 		}
 
+		private bool _ShowExpressionOnly;
+		public bool ShowExpressionOnly {
+			get => _ShowExpressionOnly;
+			set {
+				_ShowExpressionOnly = value;
+				if (value) {
+					ChangeBinding("ExpressionStr", true);
+				} else {
+					ChangeBinding(realBinding.target, realBinding.mode);
+				}
+			}
+		}
+
 		public GridCoordinates CellPosition { get; private set; }
+
+		private (string target, bool mode) realBinding;
 
 		private readonly BorderStyle defaultStyle;
 		private readonly BorderStyle selectedStyle = new BorderStyle() { thikness = new Thickness(3), brush = new SolidColorBrush(Colors.DarkOrange) };

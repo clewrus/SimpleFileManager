@@ -47,6 +47,9 @@ namespace SimpleFM.GridEditor.Components {
 
 			var expressionTextBoxDescription = DependencyPropertyDescriptor.FromProperty(ExpressionTextBoxProperty, typeof(InteractiveGrid));
 			expressionTextBoxDescription.AddValueChanged(this, ExpressionTextBoxChanged);
+
+			var showExpressionOnlyDescription = DependencyPropertyDescriptor.FromProperty(ExpressionOnlyProperty, typeof(InteractiveGrid));
+			showExpressionOnlyDescription.AddValueChanged(this, ExpressionOnlyChanged);
 		}
 
 		private void GridDataChangedHandler (Object sender, EventArgs e) {
@@ -100,6 +103,17 @@ namespace SimpleFM.GridEditor.Components {
 		private void ExpressionTextBoxChanged (Object sender, EventArgs e) {
 			if (selectManager == null) return;
 			selectManager.ExpressionTextBox = ExpressionTextBox;
+		}
+
+		private void ExpressionOnlyChanged (Object sender, EventArgs e) {
+			bool nwValue = ExpressionOnly;
+			foreach (var row in gridStructure) {
+				foreach (var cell in row) {
+					if (cell is GridCell gridCell) {
+						gridCell.ShowExpressionOnly = nwValue;
+					}
+				}
+			}
 		}
 		#endregion
 
@@ -274,8 +288,10 @@ namespace SimpleFM.GridEditor.Components {
 
 		private UIElement CreateCell (Cell context, GridCoordinates cellPosition) {
 			var nwCell = new GridCell(cellPosition) {
-				DataContext = context
+				DataContext = context,
 			};
+
+			nwCell.ShowExpressionOnly = ExpressionOnly;
 
 			selectManager.SubscribeToCell(nwCell);
 			return nwCell;
@@ -569,8 +585,6 @@ namespace SimpleFM.GridEditor.Components {
 			}
 		}
 
-
-
 		public bool ExpressionOnly {
 			get { return (bool)GetValue(ExpressionOnlyProperty); }
 			set { SetValue(ExpressionOnlyProperty, value); }
@@ -579,8 +593,6 @@ namespace SimpleFM.GridEditor.Components {
 		public static readonly DependencyProperty ExpressionOnlyProperty = DependencyProperty.Register(
 			"ExpressionOnly", typeof(bool), typeof(InteractiveGrid), new PropertyMetadata(false)
 		);
-
-
 		#endregion
 
 		private static readonly double MIN_CELL_HEIGHT = 22;
