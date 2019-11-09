@@ -10,7 +10,7 @@ namespace SimpleFM.MainWindow {
 			InitializeComponent();
 			InitializeDataContext();
 
-			PageBoundManager.Instance.CreatePageInNewWindow<GridEditorPage>("SFM Text Editor", new SFMFile("C:\\TestFolder\\GridEditorTest"));
+			PageBoundManager.Instance.CreatePageInNewWindow<GridEditorPage>("Grid Editor", new SFMFile("C:\\TestFolder\\GridEditorTest"));
 
 			Close();
 		}

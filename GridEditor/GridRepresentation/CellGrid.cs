@@ -16,8 +16,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public CellGrid (int width, int height) {
 			Cells = new ObservableCollection<ObservableCollection<Cell>>();
 
-			this.Width = width;
-			this.Height = height;
+			this.Dimentions = (width, height);
 		}
 
 		private void OnPropertyChanged ([CallerMemberName] string name = "") {

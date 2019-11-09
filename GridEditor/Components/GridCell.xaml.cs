@@ -24,6 +24,8 @@ namespace SimpleFM.GridEditor.Components {
 				brush = CellBorder.BorderBrush.Clone(),
 				thikness = CellBorder.BorderThickness
 			};
+
+			this.DataContextChanged += DataContextChangedHandler;
 			
 			IsEditable = false;
 			ChangeBinding("Value", true);
@@ -48,6 +50,14 @@ namespace SimpleFM.GridEditor.Components {
 				}
 
 				targetObject = VisualTreeHelper.GetParent(targetObject);
+			}
+		}
+
+		private void DataContextChangedHandler (object sender, DependencyPropertyChangedEventArgs e) {
+			if (!IsEditable) {
+				ChangeBinding("Value", true);
+			} else {
+				ChangeBinding("ExpressionStr", true);
 			}
 		}
 

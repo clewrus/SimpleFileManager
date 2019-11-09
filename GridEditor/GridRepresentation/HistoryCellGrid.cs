@@ -1,7 +1,10 @@
-﻿using System;
+﻿using SimpleFM.FileManager.ModelCovers;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,6 +12,25 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 	public abstract class HistoryCellGrid {
 		public HistoryCellGrid (int width, int height) {
 			Grid = CreateGrid(width, height);
+			EndHistoryGridInitialization();
+		}
+
+		public HistoryCellGrid (SFMFile targetGridFile) {
+			var formatter = new BinaryFormatter();
+			var readFileStream = new FileStream(targetGridFile.ElementPath, FileMode.Open, FileAccess.Read);
+
+			IMemento deserealizedMemento = formatter.Deserialize(readFileStream) as IMemento;
+			if (deserealizedMemento == null) {
+				throw new FileFormatException($"Can't get GridInfo from file: {targetGridFile.ElementPath}");
+			}
+
+			Grid = CreateGrid(1, 1);
+			Grid.SetState(deserealizedMemento);
+
+			EndHistoryGridInitialization();
+		}
+
+		private void EndHistoryGridInitialization () {
 			gridCaretaker = new SequenceCaretaker();
 			SaveGridState();
 
@@ -18,24 +40,39 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 		protected abstract CellGrid CreateGrid (int width, int height);
 
+		public void SaveToFile (SFMFile targetFile) {
+			var currentMemento = Grid.GenerateMemento();
+			var writeFileStream = new FileStream(targetFile.ElementPath, FileMode.Create, FileAccess.Write);
+
+			var formatter = new BinaryFormatter();
+			formatter.Serialize(writeFileStream, currentMemento);
+		}
+
 		private void GridUpdatedByUserHandler (object sender, UpdatedByUserEventArgs e) {
 			if (isListeningGridUpdates) {
 				SaveGridState();
 			}
+
+			OnGridChanged();
 		}
 
+		private void OnGridChanged () {
+			GridChanged?.Invoke(this, new EventArgs());
+		}
+
+		#region Memento handling
 		private void SaveGridState () {
 			var curMemento = Grid.GenerateMemento();
 			gridCaretaker.SetNextMemento(curMemento);
 			gridCaretaker.MoveToNext();
 		}
 
-		public ObservableCollection<ObservableCollection<Cell>> GridData {
-			get => Grid.Cells;
-		}
-
 		public bool HasPreviousState () {
 			return gridCaretaker.HasPreviousState();
+		}
+
+		public bool HasNextState () {
+			return gridCaretaker.HasNextState();
 		}
 
 		public bool MoveToPreviousState () {
@@ -49,10 +86,6 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			return true;
 		}
 
-		public bool HasNextState () {
-			return gridCaretaker.HasNextState();
-		}
-
 		public bool MoveToNextState () {
 			if (!gridCaretaker.MoveToNext()) {
 				return false;
@@ -62,6 +95,11 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			Grid.SetState(gridCaretaker.CurrentMemento);
 			isListeningGridUpdates = true;
 			return true;
+		}
+		#endregion
+
+		public ObservableCollection<ObservableCollection<Cell>> GridData {
+			get => Grid.Cells;
 		}
 
 		public (int, int) Dimentions {
@@ -87,6 +125,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public static readonly int MAX_GRID_HEIGHT = 60;
 
 		public CellGrid Grid {get; private set;}
+		public event EventHandler GridChanged;
 
 		private bool isListeningGridUpdates;
 		private SequenceCaretaker gridCaretaker;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleFM.FileManager.ModelCovers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,8 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public HistoryCalculatingGrid (int width, int height) : base (width, height) {
 
 		}
+
+		public HistoryCalculatingGrid (SFMFile targetFile) : base(targetFile) { }
 		
 		protected override CellGrid CreateGrid (int width, int height) {
 			return new CalculatingGrid(width, height);

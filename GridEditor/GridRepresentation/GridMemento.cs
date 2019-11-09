@@ -6,17 +6,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SimpleFM.GridEditor.GridRepresentation {
+
+	[System.Serializable]
 	public class GridMemento : IMemento {
 
 		public GridMemento (GridInfo storedData) {
 			Data = new GridInfo(storedData);
 		}
 
+		[System.Serializable]
 		public struct CellInfo {
 			public string value;
 			public string expressionStr;
 		}
 
+		[System.Serializable]
 		public class GridInfo {
 			public GridInfo () {
 				content = new Dictionary<(int, int), CellInfo>();

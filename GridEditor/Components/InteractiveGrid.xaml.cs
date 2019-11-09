@@ -59,6 +59,7 @@ namespace SimpleFM.GridEditor.Components {
 			}
 
 			UpdateGridSize();
+			UpdateCellsDataContext();
 		}
 
 		private void GridDataCollectionChangedHandler (Object sender, NotifyCollectionChangedEventArgs e) {
@@ -171,6 +172,14 @@ namespace SimpleFM.GridEditor.Components {
 		private void UpdateGridSize () {
 			AdjustWidth();
 			AdjustHeight();
+		}
+
+		private void UpdateCellsDataContext () {
+			for (int i = 0; i < gridStructure.Count; i++) {
+				for (int j = 0; j < gridStructure[i].Count; j++) {
+					((FrameworkElement)gridStructure[i][j]).DataContext = GridData[i][j];
+				}
+			}
 		}
 
 		private void DoNothingOnScrollWheel (Object sender, MouseWheelEventArgs e) {
@@ -373,8 +382,6 @@ namespace SimpleFM.GridEditor.Components {
 			int targetColumn = MainGrid.ColumnDefinitions.Count - 1;
 
 			for (var i = 0; i < gridStructure.Count; i++) {
-				Debug.Assert(gridStructure.Count == GridData.Count);
-
 				UIElement nwCell = CreateCell(GridData[i][targetColumn], new GridCoordinates(targetColumn, i));
 				Grid.SetColumn(nwCell, targetColumn);
 				Grid.SetRow(nwCell, i);
