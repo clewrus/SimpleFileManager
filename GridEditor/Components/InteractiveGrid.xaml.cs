@@ -67,6 +67,13 @@ namespace SimpleFM.GridEditor.Components {
 
 		private void GridDataCollectionChangedHandler (Object sender, NotifyCollectionChangedEventArgs e) {
 			if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Remove) {
+				if (sender is ObservableCollection<ObservableCollection<Cell>> rowsCollection) {
+					foreach (var row in rowsCollection) {
+						row.CollectionChanged -= GridDataCollectionChangedHandler;
+						row.CollectionChanged += GridDataCollectionChangedHandler;
+					}
+				}
+				
 				int width = GridData[0].Count;
 				foreach (var row in GridData) {
 					if (row.Count != width) {
@@ -385,13 +392,30 @@ namespace SimpleFM.GridEditor.Components {
 			var content = new TextBlock() {
 				Text = columnCoords.GetStringCoords().Item1,
 				TextAlignment = TextAlignment.Center,
-			};			
-
-			return new Border() {
+			};
+			
+			var border = new Border() {
 				Child = content,
 				BorderThickness = new Thickness(1, 0, 1, 0),
 				BorderBrush = GridSplitterBrush
 			};
+
+			border.ContextMenu = new ContextMenu();
+			((FrameworkElement)border.Child).ContextMenu = border.ContextMenu;
+
+			border.ContextMenu.Items.Add(new MenuItem() { 
+				Header = "Add column",
+				Command = AddColumnCommand,
+				CommandParameter = headerIndex
+			});
+
+			border.ContextMenu.Items.Add(new MenuItem() {
+				Header = "Remove column",
+				Command = RemoveColumnCommand,
+				CommandParameter = headerIndex
+			});
+
+			return border;
 		}
 
 		private void FillLastColumn () {
@@ -476,11 +500,27 @@ namespace SimpleFM.GridEditor.Components {
 				VerticalAlignment = VerticalAlignment.Center
 			};
 
-			return new Border() {
+			var border = new Border() {
 				Child = content,
 				BorderBrush = GridSplitterBrush,
 				BorderThickness = new Thickness(0, 1, 0, 1)
 			};
+
+			border.ContextMenu = new ContextMenu();
+			((FrameworkElement)border.Child).ContextMenu = border.ContextMenu;
+			border.ContextMenu.Items.Add(new MenuItem() {
+				Header = "Add row",
+				Command = AddRowCommand,
+				CommandParameter = rowIndex
+			});
+
+			border.ContextMenu.Items.Add(new MenuItem() {
+				Header = "Remove row",
+				Command = RemoveRowCommand,
+				CommandParameter = rowIndex
+			});
+
+			return border;
 		}
 
 		private void FillLastRow () {
@@ -593,6 +633,37 @@ namespace SimpleFM.GridEditor.Components {
 		public static readonly DependencyProperty ExpressionOnlyProperty = DependencyProperty.Register(
 			"ExpressionOnly", typeof(bool), typeof(InteractiveGrid), new PropertyMetadata(false)
 		);
+
+		public ICommand AddColumnCommand {
+			get { return (ICommand)GetValue(AddColumnCommandProperty); }
+			set { SetValue(AddColumnCommandProperty, value); }
+		}
+		public static readonly DependencyProperty AddColumnCommandProperty =
+			DependencyProperty.Register("AddColumnCommand", typeof(ICommand), typeof(InteractiveGrid), new PropertyMetadata(null));
+
+
+		public ICommand RemoveColumnCommand {
+			get { return (ICommand)GetValue(RemoveColumnCommandProperty); }
+			set { SetValue(RemoveColumnCommandProperty, value); }
+		}
+		public static readonly DependencyProperty RemoveColumnCommandProperty =
+			DependencyProperty.Register("RemoveColumnCommand", typeof(ICommand), typeof(InteractiveGrid), new PropertyMetadata(null));
+
+
+		public ICommand AddRowCommand {
+			get { return (ICommand)GetValue(AddRowCommandProperty); }
+			set { SetValue(AddRowCommandProperty, value); }
+		}
+		public static readonly DependencyProperty AddRowCommandProperty =
+			DependencyProperty.Register("AddRowCommand", typeof(ICommand), typeof(InteractiveGrid), new PropertyMetadata(null));
+
+
+		public ICommand RemoveRowCommand {
+			get { return (ICommand)GetValue(RemoveRowCommandProperty); }
+			set { SetValue(RemoveRowCommandProperty, value); }
+		}
+		public static readonly DependencyProperty RemoveRowCommandProperty =
+			DependencyProperty.Register("RemoveRowCommand", typeof(ICommand), typeof(InteractiveGrid), new PropertyMetadata(null));
 		#endregion
 
 		private static readonly double MIN_CELL_HEIGHT = 22;

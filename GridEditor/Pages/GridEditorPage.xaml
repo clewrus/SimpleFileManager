@@ -79,6 +79,13 @@
 			FocusManager.FocusedElement="{Binding}"
 			ExpressionOnly="{Binding ShowExpressionOnly}"
 			ExpressionTextBox="{Binding ElementName=ExpressionTextBox}"
-			GridData="{Binding GridRepresentation.GridData}"/>
+
+			AddColumnCommand="{Binding AddColumnCommand}"
+			RemoveColumnCommand="{Binding RemoveColumnCommand}"
+			AddRowCommand="{Binding AddRowCommand}"
+			RemoveRowCommand="{Binding RemoveRowCommand}"
+
+			GridData="{Binding GridRepresentation.GridData}"
+			/>
 	</Grid>
 </Page>

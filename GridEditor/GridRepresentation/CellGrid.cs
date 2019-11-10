@@ -54,6 +54,88 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			targetList.RemoveAt(targetList.Count - 1);
 		}
 
+		#region Adding/Removing Columns/Rows
+		public void AddColumn (int targetIndex) {
+			Width += 1;
+			foreach (var row in Cells) {
+				string curExpression = "", curValue = "";
+				string tempExpression, tempValue;
+				for (int i = targetIndex; i < row.Count; i++) {
+					var cell = row[i];
+
+					tempExpression = cell.ExpressionStr;
+					tempValue = cell.Value;
+
+					cell.ValueWithinCode = curValue;
+					cell.ExpressionStr = curExpression;
+
+					curExpression = tempExpression;
+					curValue = tempValue;
+				}
+			}
+		}
+
+		public void RemoveColumn (int targetIndex) {
+			foreach (var row in Cells) {
+				string curExpression = "", curValue = "";
+				string tempExpression, tempValue;
+				for (int i = row.Count - 1; i >= targetIndex; i--) {
+					var cell = row[i];
+
+					tempExpression = cell.ExpressionStr;
+					tempValue = cell.Value;
+
+					cell.ValueWithinCode = curValue;
+					cell.ExpressionStr = curExpression;
+
+					curExpression = tempExpression;
+					curValue = tempValue;
+				}
+			}
+			Width -= 1;
+		}
+
+		public void AddRow (int targetIndex) {
+			Height += 1;
+			for (int x = 0; x < Width; x ++) {
+				string curExpression = "", curValue = "";
+				string tempExpression, tempValue;
+				for (int y = targetIndex; y < Height; y++) {
+					var cell = Cells[y][x];
+
+					tempExpression = cell.ExpressionStr;
+					tempValue = cell.Value;
+
+					cell.ValueWithinCode = curValue;
+					cell.ExpressionStr = curExpression;
+
+					curExpression = tempExpression;
+					curValue = tempValue;
+				}
+			}
+		}
+
+		public void RemoveRow (int targetIndex) {
+			for (int x = 0; x < Width; x++) {
+				string curExpression = "", curValue = "";
+				string tempExpression, tempValue;
+				for (int y = Height - 1; y >= targetIndex; y--) {
+					var cell = Cells[y][x];
+
+					tempExpression = cell.ExpressionStr;
+					tempValue = cell.Value;
+
+					cell.ValueWithinCode = curValue;
+					cell.ExpressionStr = curExpression;
+
+					curExpression = tempExpression;
+					curValue = tempValue;
+				}
+			}
+			Height -= 1;
+		}
+		#endregion
+
 		#region Memento implementation
 		public void SetState (IMemento memento) {
 			var gridMemento = memento as GridMemento;

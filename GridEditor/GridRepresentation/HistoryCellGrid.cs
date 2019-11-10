@@ -60,6 +60,36 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			GridChanged?.Invoke(this, new EventArgs());
 		}
 
+		#region Adding/Removing Columns/Rows
+		public void AddColumn (int targetIndex) {
+			isListeningGridUpdates = false;
+			Grid.AddColumn(targetIndex);
+			isListeningGridUpdates = true;
+			SaveGridState();
+		}
+
+		public void RemoveColumn (int targetIndex) {
+			isListeningGridUpdates = false;
+			Grid.RemoveColumn(targetIndex);
+			isListeningGridUpdates = true;
+			SaveGridState();
+		}
+
+		public void AddRow (int targetIndex) {
+			isListeningGridUpdates = false;
+			Grid.AddRow(targetIndex);
+			isListeningGridUpdates = true;
+			SaveGridState();
+		}
+
+		public void RemoveRow (int targetIndex) {
+			isListeningGridUpdates = false;
+			Grid.RemoveRow(targetIndex);
+			isListeningGridUpdates = true;
+			SaveGridState();
+		}
+		#endregion
+
 		#region Memento handling
 		private void SaveGridState () {
 			var curMemento = Grid.GenerateMemento();

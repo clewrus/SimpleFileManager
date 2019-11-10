@@ -219,6 +219,46 @@ namespace SimpleFM.GridEditor.ViewModels {
 				}
 			);
 		}
+
+		public ICommand AddColumnCommand {
+			get => new ViewModelCommand(
+				(arg) => {
+					if (!(arg is int index)) return;
+					GridRepresentation.AddColumn(index);
+				},
+				(arg) => GridRepresentation.Width < HistoryCellGrid.MAX_GRID_WIDTH
+			);
+		}
+
+		public ICommand RemoveColumnCommand {
+			get => new ViewModelCommand(
+				(arg) => {
+					if (!(arg is int index)) return;
+					GridRepresentation.RemoveColumn(index);
+				},
+				(arg) => 1 < GridRepresentation.Width
+			);
+		}
+
+		public ICommand AddRowCommand {
+			get => new ViewModelCommand(
+				(arg) => {
+					if (!(arg is int index)) return;
+					GridRepresentation.AddRow(index);
+				},
+				(arg) => GridRepresentation.Height < HistoryCellGrid.MAX_GRID_HEIGHT
+			);
+		}
+
+		public ICommand RemoveRowCommand {
+			get => new ViewModelCommand(
+				(arg) => {
+					if (!(arg is int index)) return;
+					GridRepresentation.RemoveRow(index);
+				},
+				(arg) => 1 < GridRepresentation.Width
+			);
+		}
 		#endregion
 	}
 }
