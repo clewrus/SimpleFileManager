@@ -9,18 +9,30 @@ using System.Threading.Tasks;
 namespace SimpleFM.GridEditor.GridRepresentation {
 	public class ParsedCell : Cell {
 		public ParsedCell() : base () {
-			this.ChangedByUser += ChangedByUserHandler;
+			ChildCells = new HashSet<GridCoordinates>();
+			this.PreChangedByUser += PreChangedByUserHandler;
 		}
 
-		private void ChangedByUserHandler (object sender, EventArgs e) {
-			var expression = EvaluateCurrentExpression(out ParserError error);
-
-			ErrorMessage = (error.IsEmpty) ? null : error.Message;
-		}
-
-		private Expression EvaluateCurrentExpression (out ParserError error) {
+		private void PreChangedByUserHandler (object sender, EventArgs e) {
 			var tokens = EvaluateTokens();
+			UpdateChildCells(tokens);
 
+			curExpression = EvaluateCurrentExpression(tokens, out ParserError error);
+			ParseErrorMessage = (error.IsEmpty) ? null : error.Message;
+			ErrorMessage = ParseErrorMessage;
+		}
+
+		private void UpdateChildCells (IEnumerable<Token> tokens) {
+			ChildCells.Clear();
+			foreach (var token in tokens) {
+				if (token is CellNameToken cellToken) {
+					ChildCells.Add(cellToken.Value);
+				}
+			}
+		}
+
+		#region Parsing
+		private Expression EvaluateCurrentExpression (LinkedList<Token> tokens, out ParserError error) {
 			var expression = Parser.Instance.ParseTokenList(tokens, out error);
 			if (!error.IsEmpty || expression == null || !IsFormula(tokens)) {
 				return expression;
@@ -76,5 +88,11 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 			return valueFound;
 		}
+		#endregion
+
+		public HashSet<GridCoordinates> ChildCells { get; private set; }
+		public string ParseErrorMessage { get; private set; }
+
+		private Expression curExpression;
 	}
 }

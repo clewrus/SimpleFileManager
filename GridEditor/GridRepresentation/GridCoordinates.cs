@@ -19,7 +19,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			this.x = ParseRowIndex(x);
 		}
 
-		public (int, int) GetNumericCoords () {
+		public (int x, int y) GetNumericCoords () {
 			return (this.x, this.y);
 		}
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleFM.GridEditor.ExpressionParsing;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -27,7 +28,12 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			var senderCell = sender as Cell;
 			if (senderCell == null) return;
 
+			OnCellChanged(senderCell);
 			OnUpdatedByUser(senderCell);
+		}
+
+		private void OnCellChanged (Cell changedCell) {
+			CellChanged(this, new UpdatedByUserEventArgs(changedCell));
 		}
 
 		private void OnUpdatedByUser (Cell changedCell) {
@@ -35,7 +41,12 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 
 		private void OnUpdatedByUser (int width, int height) {
+			OnGridStructureChanged();
 			UpdatedByUser?.Invoke(this, new UpdatedByUserEventArgs(width, height));
+		}
+
+		private void OnGridStructureChanged () {
+			GridStructureChanged?.Invoke(this, new EventArgs());
 		}
 
 		protected abstract Cell CreateCell ();
@@ -55,8 +66,39 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 
 		#region Adding/Removing Columns/Rows
+		private void UpdateCellsWithRule (Func<GridCoordinates, string> updateRule) {
+			foreach (var row in Cells) {
+				foreach (var cell in row) {
+					if (cell.IsEmpty()) continue;
+					cell.ExpressionStr = UpdateCellNamesInExpression(cell.ExpressionStr, updateRule);
+				}
+			}
+		}
+
+		private string UpdateCellNamesInExpression (string initialExpression, Func<GridCoordinates, string> updateRule) {
+			var tokens = Tokenizer.Instance.TokenizeString(initialExpression);
+			if (tokens == null || tokens.Count == 0 ||
+				!(tokens.First.Value is OperationToken opToken && opToken.Value == OperationToken.Operation.FormulaSign)) {
+				return initialExpression;
+			}
+
+			foreach (var token in tokens) {
+				if (token is CellNameToken cellToken) {
+					cellToken.ActualValue = updateRule(cellToken.Value);
+				}
+			}
+
+			var sb = new StringBuilder();
+			foreach (var token in tokens) {
+				sb.Append(token.ActualValue);
+			}
+
+			return sb.ToString();
+		}
+
 		public void AddColumn (int targetIndex) {
 			Width += 1;
+
 			foreach (var row in Cells) {
 				string curExpression = "";
 				object curValue = "";
@@ -68,13 +110,24 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 					tempExpression = cell.ExpressionStr;
 					tempValue = cell.Value;
 
-					cell.ValueWithinCode = curValue;
+					cell.Value = curValue;
 					cell.ExpressionStr = curExpression;
 
 					curExpression = tempExpression;
 					curValue = tempValue;
 				}
 			}
+
+			UpdateCellsWithRule((GridCoordinates coords) => {
+				(int x, int y) = coords.GetNumericCoords();
+				x = (x >= targetIndex) ? x + 1 : x;
+
+				coords = new GridCoordinates(x, y);
+				(string xStr, string yStr) = coords.GetStringCoords();
+				return xStr + yStr;
+			});
+
+			OnGridStructureChanged();
 		}
 
 		public void RemoveColumn (int targetIndex) {
@@ -89,13 +142,26 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 					tempExpression = cell.ExpressionStr;
 					tempValue = cell.Value;
 
-					cell.ValueWithinCode = curValue;
+					cell.Value = curValue;
 					cell.ExpressionStr = curExpression;
 
 					curExpression = tempExpression;
 					curValue = tempValue;
 				}
 			}
+
+			UpdateCellsWithRule((GridCoordinates coords) => {
+				(int x, int y) = coords.GetNumericCoords();
+				if (x == targetIndex) {
+					return "????";
+				}
+				x = (x > targetIndex) ? x - 1 : x;
+
+				coords = new GridCoordinates(x, y);
+				(string xStr, string yStr) = coords.GetStringCoords();
+				return xStr + yStr;
+			});
+
 			Width -= 1;
 		}
 
@@ -112,13 +178,24 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 					tempExpression = cell.ExpressionStr;
 					tempValue = cell.Value;
 
-					cell.ValueWithinCode = curValue;
+					cell.Value = curValue;
 					cell.ExpressionStr = curExpression;
 
 					curExpression = tempExpression;
 					curValue = tempValue;
 				}
 			}
+
+			UpdateCellsWithRule((GridCoordinates coords) => {
+				(int x, int y) = coords.GetNumericCoords();
+				y = (y >= targetIndex) ? y + 1 : y;
+
+				coords = new GridCoordinates(x, y);
+				(string xStr, string yStr) = coords.GetStringCoords();
+				return xStr + yStr;
+			});
+
+			OnGridStructureChanged();
 		}
 
 		public void RemoveRow (int targetIndex) {
@@ -133,13 +210,26 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 					tempExpression = cell.ExpressionStr;
 					tempValue = cell.Value;
 
-					cell.ValueWithinCode = curValue;
+					cell.Value = curValue;
 					cell.ExpressionStr = curExpression;
 
 					curExpression = tempExpression;
 					curValue = tempValue;
 				}
 			}
+
+			UpdateCellsWithRule((GridCoordinates coords) => {
+				(int x, int y) = coords.GetNumericCoords();
+				if (y == targetIndex) {
+					return "????";
+				}
+				y = (y > targetIndex) ? y - 1 : y;
+
+				coords = new GridCoordinates(x, y);
+				(string xStr, string yStr) = coords.GetStringCoords();
+				return xStr + yStr;
+			});
+
 			Height -= 1;
 		}
 		#endregion
@@ -155,6 +245,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			Dimentions = (info.width, info.height);
 
 			SetCellsContent(info.content);
+			OnGridStructureChanged();
 		}
 
 		public IMemento GenerateMemento () {
@@ -298,6 +389,9 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				OnPropertyChanged();
 			}
 		}
+
+		protected event EventHandler<UpdatedByUserEventArgs> CellChanged;
+		protected event EventHandler GridStructureChanged;
 
 		public event EventHandler<UpdatedByUserEventArgs> UpdatedByUser;
 		public event PropertyChangedEventHandler PropertyChanged;

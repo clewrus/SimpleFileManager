@@ -12,15 +12,19 @@
 		<Border.Style>
 			<Style TargetType="Border">
 				<Style.Triggers>
+					<DataTrigger Binding="{Binding HasSpreadError}" Value="True">
+						<Setter Property="Background" Value="#FFFBFA40"/>
+						<Setter Property="ToolTip" Value="{Binding SpreadErrorMessage}"/>
+					</DataTrigger>
+					
 					<DataTrigger Binding="{Binding HasError}" Value="True">
-						<Setter Property="Background" Value="#FFFFCACA"/>
+						<Setter Property="Background" Value="#FFFFCAB0"/>
 						<Setter Property="ToolTip" Value="{Binding ErrorMessage}"/>
 					</DataTrigger>
-					
-					<DataTrigger Binding="{Binding HasError}" Value="False">
+
+					<DataTrigger Binding="{Binding Calculable}" Value="True">
 						<Setter Property="Background" Value="White"/>
 					</DataTrigger>
-					
 				</Style.Triggers>
 			</Style>
 		</Border.Style>

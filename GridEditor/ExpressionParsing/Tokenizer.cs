@@ -439,7 +439,7 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			while (curNode != null && (!numPart && IsBigLetter(curNode.Value) || numPart && IsDigit(curNode.Value))) {
 				actualValue += curNode.Value.ActualValue;
 				curNode = curNode.Next;
-				numPart = numPart || IsDigit(curNode.Value);
+				numPart = numPart || (curNode != null && IsDigit(curNode.Value));
 			}
 
 			if (!GridCoordinates.TryParse(actualValue, out GridCoordinates value) || !numPart) {

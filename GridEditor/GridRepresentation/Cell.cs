@@ -9,11 +9,16 @@ using System.Threading.Tasks;
 namespace SimpleFM.GridEditor.GridRepresentation {
 	public class Cell : INotifyPropertyChanged {
 
+		public Cell () {
+			spreadErrorSources = new HashSet<GridCoordinates>();
+		}
+
 		private void OnPropertyChanged ([CallerMemberName] string name="") {
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 		}
 
 		private void OnChangedByUser () {
+			PreChangedByUser?.Invoke(this, new EventArgs());
 			ChangedByUser?.Invoke(this, new EventArgs());
 		}
 
@@ -27,12 +32,68 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 
 		public bool IsEmpty () {
-			return (Value == null || (Value is string valueStr && valueStr == "")) && String.IsNullOrEmpty(ExpressionStr);
+			return String.IsNullOrEmpty(ExpressionStr);
 		}
 
 		public bool ExpressionIsFormula () {
 			return _ExpressionStr != null && _ExpressionStr.Length > 0 && _ExpressionStr[0] == '=';
 		}
+
+		public bool Calculable {
+			get => !HasSpreadError && !HasError;
+		}
+
+		#region Spread error
+		public void AddSpreadErrorSource (GridCoordinates nwSource) {
+			spreadErrorSources.Add(nwSource);
+
+			HasSpreadError = true;
+
+			(string x, string y) = nwSource.GetStringCoords();
+			SpreadErrorMessage = $"Error in {x + y}";
+		}
+
+		public void RemoveSpreadErrorSource (GridCoordinates oldSource) {
+			if (!spreadErrorSources.Contains(oldSource)) return;
+			spreadErrorSources.Remove(oldSource);
+
+			if (spreadErrorSources.Count == 0) {
+				HasSpreadError = false;
+				SpreadErrorMessage = null;
+			} else {
+				foreach (var src in spreadErrorSources) {
+					(string x, string y) = src.GetStringCoords();
+					SpreadErrorMessage = $"Error in {x + y}";
+
+					break;
+				}
+			}
+		}
+
+		private bool _HasSpreadError;
+		public bool HasSpreadError {
+			get => _HasSpreadError;
+			set {
+				_HasSpreadError = value;
+				if (!value) {
+					spreadErrorSources.Clear();
+				}
+				OnPropertyChanged();
+				OnPropertyChanged("HasError");
+				OnPropertyChanged("Calculable");
+			}
+		}
+
+		private string _SpreadErrorMessage;
+		public string SpreadErrorMessage {
+			get => _SpreadErrorMessage;
+			set {
+				_SpreadErrorMessage = value;
+				OnPropertyChanged();
+				OnPropertyChanged("ErrorMessage");
+			}
+		}
+		#endregion
 
 		#region Error property
 		private bool _HasError;
@@ -41,6 +102,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			set {
 				_HasError = value;
 				OnPropertyChanged();
+				OnPropertyChanged("Calculable");
 			}
 		}
 
@@ -53,7 +115,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 				OnPropertyChanged();
 			}
-		}	
+		}
 		#endregion
 
 		#region Value property
@@ -64,15 +126,6 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				if (_Value == value) return;
 				_Value = SpaceIsOnlyWhiteSymbol(value);
 				OnPropertyChanged();
-				OnChangedByUser();
-			}
-		}
-
-		public object ValueWithinCode {
-			set {
-				if (_Value == value) return;
-				_Value = SpaceIsOnlyWhiteSymbol(value);
-				OnPropertyChanged("Value");
 			}
 		}
 		#endregion
@@ -88,9 +141,9 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				_ExpressionStr = SpaceIsOnlyWhiteSymbol(value) as string;
 
 				if (!prevWasFormula && ExpressionIsFormula()) {
-					ValueWithinCode = null;
+					Value = null;
 				} else if (!ExpressionIsFormula()) {
-					ValueWithinCode = ExpressionStr;
+					Value = ExpressionStr;
 				}
 
 				OnPropertyChanged();
@@ -107,7 +160,11 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 		#endregion
 
+		protected event EventHandler PreChangedByUser;
+
 		public event EventHandler ChangedByUser;
 		public event PropertyChangedEventHandler PropertyChanged;
+
+		private HashSet<GridCoordinates> spreadErrorSources;
 	}
 }
