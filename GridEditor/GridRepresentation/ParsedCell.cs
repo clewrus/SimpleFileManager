@@ -47,25 +47,34 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 
 		private bool HasSingleValueToken (LinkedList<Token> tokens) {
-			bool valueFinded = false;
+			bool unarSign = false;
+			bool valueFound = false;
 			foreach (var token in tokens) {
 				if (token is SeparatorToken sepToken && sepToken.Value == SeparatorToken.Separator.Space) {
 					continue;
 				}
 
-				if (token is OperationToken opToken && opToken.Value == OperationToken.Operation.FormulaSign) {
+				if (token is OperationToken formulaToken && formulaToken.Value == OperationToken.Operation.FormulaSign) {
 					continue;
 				}
 
-				if (!valueFinded && (token is StringToken || token is LogicToken || token is NumberToken)) {
-					valueFinded = true;
+				if (!unarSign && !valueFound && token is OperationToken signToken && 
+					(signToken.Value == OperationToken.Operation.Plus || signToken.Value == OperationToken.Operation.Minus))
+				{
+					unarSign = true;
 					continue;
+				} 
+
+				if (!valueFound && (token is StringToken || token is LogicToken || token is NumberToken)) {
+					valueFound = true;
+
+					if (!unarSign || (token is NumberToken)) continue;
 				}
 
 				return false;
 			}
 
-			return valueFinded;
+			return valueFound;
 		}
 	}
 }
