@@ -16,7 +16,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 		[System.Serializable]
 		public struct CellInfo {
-			public string value;
+			public object value;
 			public string expressionStr;
 		}
 

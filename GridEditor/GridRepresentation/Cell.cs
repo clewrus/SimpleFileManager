@@ -17,16 +17,17 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			ChangedByUser?.Invoke(this, new EventArgs());
 		}
 
-		private string SpaceIsOnlyWhiteSymbol (string value) {
+		private object SpaceIsOnlyWhiteSymbol (object valueObj) {
+			var value = valueObj as string;
 			if (value == null) {
-				return null;
+				return valueObj;
 			}
 
 			return new string(value.Where(c => c == ' ' || !Char.IsWhiteSpace(c)).ToArray());
 		}
 
 		public bool IsEmpty () {
-			return String.IsNullOrEmpty(Value) && String.IsNullOrEmpty(ExpressionStr);
+			return (Value == null || (Value is string valueStr && valueStr == "")) && String.IsNullOrEmpty(ExpressionStr);
 		}
 
 		public bool ExpressionIsFormula () {
@@ -56,8 +57,8 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		#endregion
 
 		#region Value property
-		private string _Value;
-		public string Value {
+		private object _Value;
+		public object Value {
 			get => _Value;
 			set {
 				if (_Value == value) return;
@@ -67,7 +68,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			}
 		}
 
-		public string ValueWithinCode {
+		public object ValueWithinCode {
 			set {
 				if (_Value == value) return;
 				_Value = SpaceIsOnlyWhiteSymbol(value);
@@ -84,7 +85,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				if (_ExpressionStr == value) return;
 
 				bool prevWasFormula = ExpressionIsFormula();
-				_ExpressionStr = SpaceIsOnlyWhiteSymbol(value);
+				_ExpressionStr = SpaceIsOnlyWhiteSymbol(value) as string;
 
 				if (!prevWasFormula && ExpressionIsFormula()) {
 					ValueWithinCode = null;
@@ -100,7 +101,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public string ExpressionStrWithinCode {
 			set {
 				if (_ExpressionStr == value) return;
-				_ExpressionStr = SpaceIsOnlyWhiteSymbol(value);
+				_ExpressionStr = SpaceIsOnlyWhiteSymbol(value) as string;
 				OnPropertyChanged("ExpressionStr");
 			}
 		}

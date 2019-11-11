@@ -58,8 +58,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public void AddColumn (int targetIndex) {
 			Width += 1;
 			foreach (var row in Cells) {
-				string curExpression = "", curValue = "";
-				string tempExpression, tempValue;
+				string curExpression = "";
+				object curValue = "";
+				string tempExpression;
+				object tempValue;
 				for (int i = targetIndex; i < row.Count; i++) {
 					var cell = row[i];
 
@@ -77,8 +79,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 		public void RemoveColumn (int targetIndex) {
 			foreach (var row in Cells) {
-				string curExpression = "", curValue = "";
-				string tempExpression, tempValue;
+				string curExpression = "";
+				object curValue = "";
+				string tempExpression;
+				object tempValue;
 				for (int i = row.Count - 1; i >= targetIndex; i--) {
 					var cell = row[i];
 
@@ -98,8 +102,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		public void AddRow (int targetIndex) {
 			Height += 1;
 			for (int x = 0; x < Width; x ++) {
-				string curExpression = "", curValue = "";
-				string tempExpression, tempValue;
+				string curExpression = "";
+				object curValue = "";
+				string tempExpression;
+				object tempValue;
 				for (int y = targetIndex; y < Height; y++) {
 					var cell = Cells[y][x];
 
@@ -117,8 +123,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 		public void RemoveRow (int targetIndex) {
 			for (int x = 0; x < Width; x++) {
-				string curExpression = "", curValue = "";
-				string tempExpression, tempValue;
+				string curExpression = "";
+				object curValue = "";
+				string tempExpression;
+				object tempValue;
 				for (int y = Height - 1; y >= targetIndex; y--) {
 					var cell = Cells[y][x];
 

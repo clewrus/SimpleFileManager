@@ -22,7 +22,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			var tokens = EvaluateTokens();
 
 			var expression = Parser.Instance.ParseTokenList(tokens, out error);
-			if (!error.IsEmpty || expression == null) {
+			if (!error.IsEmpty || expression == null || !IsFormula(tokens)) {
 				return expression;
 			}
 
