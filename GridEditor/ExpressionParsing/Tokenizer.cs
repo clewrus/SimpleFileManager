@@ -72,6 +72,7 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			FindSeparators(initialTokenList);
 			FindStrings(initialTokenList);
 			FindOperations(initialTokenList);
+			FindLogicals(initialTokenList);
 			FindCellNames(initialTokenList);
 			FindNumbers(initialTokenList);
 			
@@ -104,7 +105,6 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			var sepType = SeparatorToken.Separator.None;
 			switch (targetToken.Value) {
 				case ' ': sepType = SeparatorToken.Separator.Space; break;
-				case ':': sepType = SeparatorToken.Separator.Colon; break;
 				case '(': sepType = SeparatorToken.Separator.LParen; break;
 				case ')': sepType = SeparatorToken.Separator.RParen; break;
 				case '"': sepType = SeparatorToken.Separator.Quote; break;
@@ -233,10 +233,11 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 				if (TryFindSubsequence(initNode, operation.label, out nxtNode)) {
 					if (!IsValidOperation(initNode.Previous, nxtNode, operation.opName)) continue;
 
+					var previous = (nxtNode == null) ? initNode.List.Last : nxtNode.Previous;
 					opToken = new OperationToken() {
 						Value = operation.opName,
 						Position = initNode.Value.Position,
-						ActualValue = SampleStringFromTokens(initNode, nxtNode.Previous, true)
+						ActualValue = SampleStringFromTokens(initNode, previous, true)
 					};
 					
 					return true;
@@ -277,11 +278,68 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 						(nextNode == null || !IsLetter(nextNode.Value));
 			}
 
+			if (opName == OperationToken.Operation.FormulaSign) {
+				return preStartNode == null;
+			}
+
 			return true;
 		}
 
 		private bool IsLetter (Token token) {
 			return token is UndefinedToken undefinedToken && Char.IsLetter(undefinedToken.Value);
+		}
+		#endregion
+
+		#region Logics
+		private void FindLogicals (LinkedList<Token> tokens) {
+			var curNode = tokens.First;
+			while (curNode != null) {
+				if (curNode.Value is UndefinedToken) {
+					if (TryFindLogical(curNode, out LogicToken logicToken, out LinkedListNode<Token> next)) {
+						curNode = InsertInsteadSequence(curNode, next, logicToken);
+					}
+				}
+
+				curNode = curNode.Next;
+			}
+		}
+
+		private bool TryFindLogical (LinkedListNode<Token> initNode, out LogicToken logicToken, out LinkedListNode<Token> nxtNode) {
+			logicToken = null;
+			nxtNode = initNode;
+			if (initNode.Previous != null && IsLetter(initNode.Previous.Value)) return false;
+
+			if (TryFindSubsequence(initNode, "true", out nxtNode)) {
+				var lastNode = (nxtNode == null) ? initNode.List.Last : nxtNode.Previous;
+
+				if (nxtNode != null && IsLetter(nxtNode.Value)) {
+					return false;
+				}
+					
+				logicToken = new LogicToken() {
+					Position = initNode.Value.Position,
+					Value = true,
+					ActualValue = SampleStringFromTokens(initNode, lastNode, true)
+				};
+				return true;
+			}
+
+			if (TryFindSubsequence(initNode, "false", out nxtNode)) {
+				var prevNode = (nxtNode == null) ? initNode.List.Last : nxtNode.Previous;
+
+				if (nxtNode != null && IsLetter(nxtNode.Value)) {
+					return false;
+				}
+
+				logicToken = new LogicToken() {
+					Position = initNode.Value.Position,
+					Value = false,
+					ActualValue = SampleStringFromTokens(initNode, prevNode, true)
+				};
+				return true;
+			}
+
+			return false;
 		}
 		#endregion
 
@@ -305,6 +363,7 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 
 			bool hasDot = false;
 			bool hasExp = false;
+			bool hasDigits = false;
 			var curNode = initNode;
 			string actualValue = "";
 
@@ -312,10 +371,11 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 				var curValue = curNode.Value;
 				if (!IsDigit(curValue) && !IsDot(curValue) && !IsExp(curValue)) break;
 				if ((hasDot || hasExp) && IsDot(curValue)) break;
-				if (hasExp && IsExp(curValue)) break;
+				if ((!hasDigits || hasExp) && IsExp(curValue)) break;
 
 				hasDot = hasDot || IsDot(curValue);
 				hasExp = hasExp || IsExp(curValue);
+				hasDigits = hasDigits || IsDigit(curValue);
 
 				actualValue += curValue.ActualValue;
 				curNode = curNode.Next;
@@ -403,6 +463,7 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 
 		private static readonly List<(string label, OperationToken.Operation opName)> opNames = 
 				new List<(string label, OperationToken.Operation opName)>() {
+            ("=", OperationToken.Operation.FormulaSign),
 			("+", OperationToken.Operation.Plus),
 			("-", OperationToken.Operation.Minus),
 			("*", OperationToken.Operation.Mult),
@@ -413,6 +474,7 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			("<", OperationToken.Operation.Less),
 			("==", OperationToken.Operation.Equal),
 			("!=", OperationToken.Operation.UnEqual),
+			("!", OperationToken.Operation.Not),
 			("if", OperationToken.Operation.If),
 			("mod", OperationToken.Operation.Mod),
 			("div", OperationToken.Operation.Div),

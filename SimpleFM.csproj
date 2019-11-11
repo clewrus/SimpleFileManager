@@ -80,8 +80,16 @@
     <Compile Include="GridEditor\DialogWindows\ResizeDialog.xaml.cs">
       <DependentUpon>ResizeDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GridEditor\ExpressionParsing\BinarOp.cs" />
+    <Compile Include="GridEditor\ExpressionParsing\Expression.cs" />
+    <Compile Include="GridEditor\ExpressionParsing\ILexem.cs" />
+    <Compile Include="GridEditor\ExpressionParsing\OpRandsList.cs" />
+    <Compile Include="GridEditor\ExpressionParsing\Parser.cs" />
+    <Compile Include="GridEditor\ExpressionParsing\ParserError.cs" />
+    <Compile Include="GridEditor\ExpressionParsing\Term.cs" />
     <Compile Include="GridEditor\ExpressionParsing\Token.cs" />
     <Compile Include="GridEditor\ExpressionParsing\Tokenizer.cs" />
+    <Compile Include="GridEditor\ExpressionParsing\UnarOp.cs" />
     <Compile Include="GridEditor\GridRepresentation\CalculatingGrid.cs" />
     <Compile Include="GridEditor\GridRepresentation\Cell.cs" />
     <Compile Include="GridEditor\GridRepresentation\CellGrid.cs" />

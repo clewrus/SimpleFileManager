@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SimpleFM.GridEditor.ExpressionParsing {
-	public abstract class Token {
+	public abstract class Token : ILexem {
 		public override String ToString () {
 			return $"({this.GetType().Name}): {ActualValue}";
 		}
@@ -20,7 +20,7 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 	}
 
 	public class SeparatorToken : Token {
-		public enum Separator { None, Space, Colon, Comma, LParen, RParen, Quote }
+		public enum Separator { None, Space, Comma, LParen, RParen, Quote }
 		public Separator Value { get; set; }
 	}
 
@@ -28,9 +28,14 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 		public string Value { get; set; }
 	}
 
+	public class LogicToken : Token {
+		public bool Value { get; set; }
+	}
+
 	public class OperationToken : Token {
 		public static readonly HashSet<string> FUNC_NAMES = new HashSet<string>() { };
-		public enum Operation { None, Plus, Minus, Mult, Divide, Div, Mod, If, More, Less, MoreEq, LessEq, Equal, UnEqual, Func}
+		public enum Operation { None, FormulaSign, Plus, Minus, Mult, Divide, Div, Mod,
+			If, Not, More, Less, MoreEq, LessEq, Equal, UnEqual, Func}
 		public Operation Value;
 	}
 

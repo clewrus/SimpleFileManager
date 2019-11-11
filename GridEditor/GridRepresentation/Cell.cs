@@ -33,6 +33,8 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			return _ExpressionStr != null && _ExpressionStr.Length > 0 && _ExpressionStr[0] == '=';
 		}
 
+		
+
 		#region Value property
 		private string _Value;
 		public string Value {
