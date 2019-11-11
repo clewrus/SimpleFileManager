@@ -666,7 +666,7 @@ namespace SimpleFM.GridEditor.Components {
 			DependencyProperty.Register("RemoveRowCommand", typeof(ICommand), typeof(InteractiveGrid), new PropertyMetadata(null));
 		#endregion
 
-		private static readonly double MIN_CELL_HEIGHT = 22;
+		private static readonly double MIN_CELL_HEIGHT = 25;
 		private static readonly double MIN_CELL_WIDTH = 100;
 
 		private static readonly double SELECTED_CELL_MARGIN = 30;

@@ -11,6 +11,9 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 
 		public Expression ParseTokenList (LinkedList<Token> tokens, out ParserError error) {
 			error = ParserError.Empty;
+			if (tokens.Count == 0) {
+				return null;
+			}
 
 			if (ContainsUndefined(tokens, out UndefinedToken undefined)) {
 				error = new ParserError($"Undefined token: {undefined.ActualValue} at {undefined.Position}");

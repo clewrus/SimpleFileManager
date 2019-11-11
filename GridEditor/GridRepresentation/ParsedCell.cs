@@ -14,13 +14,15 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 		private void ChangedByUserHandler (object sender, EventArgs e) {
 			var expression = EvaluateCurrentExpression(out ParserError error);
+
+			ErrorMessage = (error.IsEmpty) ? null : error.Message;
 		}
 
 		private Expression EvaluateCurrentExpression (out ParserError error) {
 			var tokens = EvaluateTokens();
 
 			var expression = Parser.Instance.ParseTokenList(tokens, out error);
-			if (!error.IsEmpty) {
+			if (!error.IsEmpty || expression == null) {
 				return expression;
 			}
 

@@ -7,12 +7,30 @@
              mc:Ignorable="d" 
              d:DesignHeight="20" d:DesignWidth="100"
 			 Name="SelfName">
-	<Border x:Name="CellBorder" Cursor="Cross" BorderThickness="1" BorderBrush="Gray" Background="White">
+
+	<Border x:Name="CellBorder" Cursor="Cross" BorderThickness="1" BorderBrush="Gray">
+		<Border.Style>
+			<Style TargetType="Border">
+				<Style.Triggers>
+					<DataTrigger Binding="{Binding HasError}" Value="True">
+						<Setter Property="Background" Value="#FFFFCACA"/>
+						<Setter Property="ToolTip" Value="{Binding ErrorMessage}"/>
+					</DataTrigger>
+					
+					<DataTrigger Binding="{Binding HasError}" Value="False">
+						<Setter Property="Background" Value="White"/>
+					</DataTrigger>
+					
+				</Style.Triggers>
+			</Style>
+		</Border.Style>
+		
 		<TextBox x:Name="ContentBox"
 			PreviewMouseLeftButtonDown="TextBox_MouseDown"
 			MouseDoubleClick="TextBox_MouseDoubleClick"
 			KeyDown="ContentBox_KeyDown"
 			Margin="1"
+			Background="Transparent"
 			HorizontalScrollBarVisibility="Disabled"
 			VerticalScrollBarVisibility="Disabled"
 			VerticalContentAlignment="Center"

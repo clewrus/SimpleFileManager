@@ -33,7 +33,27 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			return _ExpressionStr != null && _ExpressionStr.Length > 0 && _ExpressionStr[0] == '=';
 		}
 
-		
+		#region Error property
+		private bool _HasError;
+		public bool HasError {
+			get => _HasError;
+			set {
+				_HasError = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private string _ErrorMessage;
+		public string ErrorMessage {
+			get => _ErrorMessage;
+			set {
+				_ErrorMessage = value;
+				HasError = !string.IsNullOrEmpty(_ErrorMessage);
+
+				OnPropertyChanged();
+			}
+		}	
+		#endregion
 
 		#region Value property
 		private string _Value;
