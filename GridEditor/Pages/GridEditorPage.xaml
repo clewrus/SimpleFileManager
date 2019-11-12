@@ -47,6 +47,13 @@
 					</MenuItem.Icon>
 				</MenuItem>
 			</MenuItem>
+			<MenuItem Header="Bound">
+				<MenuItem x:Name="BoundToLeftItem" Header="Bound to left panel"/>
+				<MenuItem x:Name="BoundToRightItem" Header="Bound to right panel"/>
+				<Separator/>
+				<MenuItem x:Name="UnboundItem" Header="Unbound"/>
+				<MenuItem x:Name="CloseItem" Header="Close"/>
+			</MenuItem>
 		</Menu>
 
 		<Border Grid.Row="1" Padding="3,3" Margin="2" BorderThickness="1" BorderBrush="AliceBlue" >

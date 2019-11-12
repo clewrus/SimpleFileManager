@@ -40,6 +40,13 @@
 				<MenuItem Header="File">
 					<MenuItem Header="Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S"/>
 				</MenuItem>
+				<MenuItem Header="Bound">
+					<MenuItem x:Name="BoundToLeftItem" Header="Bound to left panel"/>
+					<MenuItem x:Name="BoundToRightItem" Header="Bound to right panel"/>
+					<Separator/>
+					<MenuItem x:Name="UnboundItem" Header="Unbound"/>
+					<MenuItem x:Name="CloseItem" Header="Close"/>
+				</MenuItem>
 			</Menu>
 			<Border BorderBrush="LightBlue" BorderThickness="2" Padding="2" Margin="2,0,0,0">
 				<avalonEdit:TextEditor

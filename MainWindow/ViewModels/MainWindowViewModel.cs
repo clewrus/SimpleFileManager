@@ -8,6 +8,7 @@ using SimpleFM.Common.ViewModels;
 using SimpleFM.FileManager.Pages;
 using SimpleFM.PageManager;
 using SimpleFM.GridEditor.Pages;
+using System;
 
 namespace SimpleFM.ViewModels {
 	public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged {
@@ -17,29 +18,60 @@ namespace SimpleFM.ViewModels {
 
 			LeftFramePage = new FileManagerPage();
 			RightFramePage = new FileManagerPage();
+
+			fileManagerLeftPage = LeftFramePage;
+			fileManagerRightPage = RightFramePage;
+
+			PageBoundManager.Instance.PageBindingChange += PageBindingChangeHandler;
 		}
 
-		#region LeftFrameProperties
+		private void PageBindingChangeHandler (object sender, PageBindingChangeEventArgs e) {
+			if (e.action == PageBindingChangeEventArgs.ActionType.Bind) {
+				if (e.targetSpotIndex == 0) {
+					if (LeftFramePage != fileManagerLeftPage) {
+						string title = (LeftFramePage is GridEditorPage) ? "Grid editor" : "Text editor";
+						PageBoundManager.Instance.TryUnBound(LeftFramePage, title);
+					}
+					LeftFramePage = e.page;
+				} else {
+					if (RightFramePage != fileManagerRightPage) {
+						string title = (RightFramePage is GridEditorPage) ? "Grid editor" : "Text editor";
+						PageBoundManager.Instance.TryUnBound(RightFramePage, title);
+					}
+					RightFramePage = e.page;
+				}
+			}
+
+			if (e.action == PageBindingChangeEventArgs.ActionType.Unbind) {
+				if (LeftFramePage == e.page) {
+					LeftFramePage = fileManagerLeftPage;
+				} else if (RightFramePage == e.page) {
+					RightFramePage = fileManagerRightPage;
+				}
+			}
+
+			e.handled = true;
+		}
+
+		private Page fileManagerLeftPage;
 
 		private Page _LeftFramePage;
 		public Page LeftFramePage {
 			get { return _LeftFramePage; }
 			set { SetProperty(ref _LeftFramePage, value); }
 		}
-		
-		public FooterViewModel LeftFooterViewModel { get; private set; }
-		#endregion
 
-		#region RightFrameProperties
+		private Page fileManagerRightPage;
 
 		private Page _RightFramePage;
 		public Page RightFramePage {
 			get { return _RightFramePage; }
 			set { SetProperty(ref _RightFramePage, value); }
 		}
-		
+
+
+		public FooterViewModel LeftFooterViewModel { get; private set; }
 		public FooterViewModel RightFooterViewModel { get; private set; }
-		#endregion
 
 		public ICommand OpenEmptyGridEditor {
 			get => new ViewModelCommand(

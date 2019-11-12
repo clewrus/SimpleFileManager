@@ -23,12 +23,16 @@ namespace SimpleFM.ViewModels {
 			get => _SourcePage;
 			set {
 				var titleDescriptor = DependencyPropertyDescriptor.FromProperty(Page.TitleProperty, typeof(Page));
-				titleDescriptor.RemoveValueChanged(_SourcePage, TitleChangedHandler);
-
+				if (SourcePage != null) {
+					titleDescriptor.RemoveValueChanged(_SourcePage, TitleChangedHandler);
+				}
+				
 				_SourcePage = value;
 				WindowName = SourcePage.Title;
 
-				titleDescriptor.AddValueChanged(_SourcePage, TitleChangedHandler);
+				if (SourcePage != null) {
+					titleDescriptor.AddValueChanged(_SourcePage, TitleChangedHandler);
+				}
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("SourcePage"));
 			}
 		}
