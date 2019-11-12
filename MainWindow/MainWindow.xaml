@@ -21,6 +21,10 @@
 					<Separator/>
 					<MenuItem Header="Creator's info" Command="{Binding CreaterInfoMessageBox}"/>
 				</MenuItem>
+
+				<MenuItem Header="GridEditor">
+					<MenuItem Header="Open empty file" Command="{Binding OpenEmptyGridEditor}"/>
+				</MenuItem>
 			</Menu>
 		</Border>
 

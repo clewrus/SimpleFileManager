@@ -6,6 +6,8 @@ using SimpleFM.Common.Commands;
 using System.Windows;
 using SimpleFM.Common.ViewModels;
 using SimpleFM.FileManager.Pages;
+using SimpleFM.PageManager;
+using SimpleFM.GridEditor.Pages;
 
 namespace SimpleFM.ViewModels {
 	public class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged {
@@ -39,9 +41,15 @@ namespace SimpleFM.ViewModels {
 		public FooterViewModel RightFooterViewModel { get; private set; }
 		#endregion
 
+		public ICommand OpenEmptyGridEditor {
+			get => new ViewModelCommand(
+				(arg) =>  PageBoundManager.Instance.CreatePageInNewWindow<GridEditorPage>("Grid editor", new object[0])
+			);
+		}
+
 		public ICommand ShowInfoMessageBox {
 			get => new ViewModelCommand(
-				(arg) =>  MessageBox.Show( "This is a file manager \nthat was created for education purpose.\n")
+				(arg) => MessageBox.Show( "This is a file manager \nthat was created for education purpose.\n")
 			);
 		}
 

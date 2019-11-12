@@ -16,8 +16,25 @@ using System.Windows.Input;
 
 namespace SimpleFM.GridEditor.ViewModels {
 	public class GridEditorViewModel : ViewModelBase, INotifyPropertyChanged {
+		public GridEditorViewModel () {
+			InitializeEmptyFile();
+		}
+
 		public GridEditorViewModel (SFMFile targetFile) {
+			try {
+				GridRepresentation = new HistoryCalculatingGrid(targetFile);
+				OpenedFile = targetFile;
+				RecentlySaved = true;
+			} catch {
+				MessageBox.Show($"Can't open the file:\n {targetFile.ElementPath}");
+				InitializeEmptyFile();
+			}
+		}
+
+		private void InitializeEmptyFile () {
 			GridRepresentation = new HistoryCalculatingGrid(20, 30);
+			OpenedFile = null;
+			RecentlySaved = false;
 		}
 
 		private void GridChangedHandler (object sender, EventArgs e) {
