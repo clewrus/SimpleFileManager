@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleFM.GridEditor.GridRepresentation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,6 +56,11 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			}
 
 			error = ParserError.Empty;
+		}
+
+		public override object GetValue (Dictionary<GridCoordinates, object> childCells, out ParserError error) {
+			error = new ParserError("Can't find value of OperandList");
+			return null;
 		}
 
 		public List<OpRand> OpRands { get; private set; }

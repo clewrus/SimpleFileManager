@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleFM.GridEditor.GridRepresentation;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -31,6 +32,26 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			}
 
 			((OpRand)expressionComponents.First.Value).Validate(out error);
+		}
+
+		public override object GetValue (Dictionary<GridCoordinates, object> childCells, out ParserError error) {
+			try {
+				error = new ParserError("Something went wrong in expression");
+
+				if (expressionComponents.First.Value is OpRand opRand) {
+					return opRand.GetValue(childCells, out error);
+				}
+
+				if (expressionComponents.First.Value is StringToken strToken) {
+					error = ParserError.Empty;
+					return strToken.Value;
+				}
+
+				return null;
+			} catch {
+				error = new ParserError("Wrong expression");
+				return null;
+			}
 		}
 
 		#region SubExpression
@@ -225,7 +246,13 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			}
 
 			curNode.List.Remove(curNode);
-			return Replace(nextNode, new UnarOp(currentOperation, (OpRand)nextNode.Value, out error));
+			var nextOpRand = nextNode.Value as OpRand;
+			if (nextOpRand == null) {
+				error = new ParserError($"Can't find Unar {currentOperation.ToString()} argument");
+				return curNode;
+			}
+
+			return Replace(nextNode, new UnarOp(currentOperation, nextOpRand, out error));
 		}
 		#endregion
 

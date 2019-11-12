@@ -1,6 +1,7 @@
 ﻿using SimpleFM.GridEditor.GridRepresentation;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,26 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			error = ParserError.Empty;
 		}
 
+		public override object GetValue (Dictionary<GridCoordinates, object> childCells, out ParserError error) {
+			error = ParserError.Empty;
+			if (IsLogic) return AsLogic;
+			if (IsString) return AsString;
+			if (IsNumber) return AsNumber;
+			
+			if (Value is CellNameToken cellName) {
+				if (!childCells.ContainsKey(cellName.Value)) {
+					(string x, string y) = cellName.Value.GetStringCoords();
+					error = new ParserError($"Don't know the value of {x + y} cell.");
+					return null;
+				}
+
+				return childCells[cellName.Value];
+			}
+
+			error = new ParserError($"Strange term at {Value.Position}");
+			return null;
+		}
+
 		public GridCoordinates AsGridCoordinates => (Value is CellNameToken cellName) ? cellName.Value : default;
 		public string AsString => (Value is StringToken stringToken) ? stringToken.Value : null;
 		public bool AsLogic => (Value is LogicToken logicToken) ? logicToken.Value : false;
@@ -23,8 +44,8 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 				if (!(Value is NumberToken numToken)) {
 					return default;
 				}
-
-				if (Decimal.TryParse(numToken.Value, out Decimal number)) {
+	
+				if (Decimal.TryParse(numToken.Value, NumberStyles.Any, new CultureInfo("en-US"), out Decimal number)) {
 					return number;
 				}
 

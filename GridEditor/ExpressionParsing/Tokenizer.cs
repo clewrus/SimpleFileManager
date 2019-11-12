@@ -363,18 +363,23 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 
 			bool hasDot = false;
 			bool hasExp = false;
+			bool hasExpSign = false;
 			bool hasDigits = false;
+			bool hasExpDigits = false;
 			var curNode = initNode;
 			string actualValue = "";
 
 			while (curNode != null) {
 				var curValue = curNode.Value;
-				if (!IsDigit(curValue) && !IsDot(curValue) && !IsExp(curValue)) break;
+				if (!IsDigit(curValue) && !IsDot(curValue) && !IsExp(curValue) && !IsPlusMinus(curValue)) break;
 				if ((hasDot || hasExp) && IsDot(curValue)) break;
 				if ((!hasDigits || hasExp) && IsExp(curValue)) break;
+				if ((hasExpSign || !hasExp || hasExpDigits) && IsPlusMinus(curValue)) break;
 
 				hasDot = hasDot || IsDot(curValue);
 				hasExp = hasExp || IsExp(curValue);
+				hasExpSign = hasExpSign || IsPlusMinus(curValue);
+				hasExpDigits = hasExpDigits || hasExp && IsDigit(curValue);
 				hasDigits = hasDigits || IsDigit(curValue);
 
 				actualValue += curValue.ActualValue;
@@ -405,6 +410,11 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 
 		private bool IsExp (Token token) {
 			return token is UndefinedToken undefinedToken && undefinedToken.Value == 'e';
+		}
+
+		private bool IsPlusMinus (Token token) {
+			return token is OperationToken opToken && 
+				(opToken.Value == OperationToken.Operation.Plus || opToken.Value == OperationToken.Operation.Minus);
 		}
 		#endregion
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleFM.GridEditor.GridRepresentation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 
 	public abstract class OpRand : ILexem {
 		public abstract void Validate (out ParserError error);
+		public abstract object GetValue (Dictionary<GridCoordinates, object> childCells, out ParserError error);
 	}
 
 	public abstract class Operation : OpRand {

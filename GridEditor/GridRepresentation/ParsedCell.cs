@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 
 namespace SimpleFM.GridEditor.GridRepresentation {
 	public class ParsedCell : Cell {
-		public ParsedCell() : base () {
+		public ParsedCell(GridCoordinates coordinates) : base () {
+			this.Coordinates = coordinates;
 			ChildCells = new HashSet<GridCoordinates>();
 			this.PreChangedByUser += PreChangedByUserHandler;
 		}
@@ -90,8 +91,19 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 		#endregion
 
+		public bool Calculate (Dictionary<GridCoordinates, object> childCells) {
+			if (curExpression == null) return false;
+
+			Value = curExpression.GetValue(childCells, out ParserError error);
+			ParseErrorMessage = (error.IsEmpty) ? null : error.Message;
+			ErrorMessage = ParseErrorMessage;
+
+			return error.IsEmpty;
+		}
+
 		public HashSet<GridCoordinates> ChildCells { get; private set; }
 		public string ParseErrorMessage { get; private set; }
+		public GridCoordinates Coordinates { get; private set; }
 
 		private Expression curExpression;
 	}

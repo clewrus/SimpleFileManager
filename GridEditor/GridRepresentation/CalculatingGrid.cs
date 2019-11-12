@@ -18,8 +18,8 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 		}
 
 		// Factory Method
-		protected override Cell CreateCell () {
-			return new ParsedCell();
+		protected override Cell CreateCell (GridCoordinates gridCoordinates) {
+			return new ParsedCell(gridCoordinates);
 		}
 
 		private void StructureChangedHandler (object sender, EventArgs e) {
@@ -42,8 +42,17 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 			spreadErrorListeners.Clear();
 			foreach (var node in cellGraph.Keys) {
-				if (!node.Calculable && cellCoords.ContainsKey(node)) {
-					SpreadErrorFromCell(node, cellCoords[node]);
+				if (!node.Calculable) {
+					SpreadErrorFromCell(node, node.Coordinates);
+				}
+			}
+
+			CalculateGrid();
+
+			spreadErrorListeners.Clear();
+			foreach (var node in cellGraph.Keys) {
+				if (!node.Calculable) {
+					SpreadErrorFromCell(node, node.Coordinates);
 				}
 			}
 		}
@@ -56,30 +65,86 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				GlobalRefresh();
 				return;
 			}
-		
-			if (cellCoords.ContainsKey(targetCell)) {
-				ClearCellsSpreadErrorListeners(cellCoords[targetCell]);
-			}
+
+			ClearCellsSpreadErrorListeners(targetCell.Coordinates);
 
 			UpdateGraphForCell(targetCell);
 			if (!cellGraph.ContainsKey(targetCell)) {
 				targetCell.Value = null;
-				return;
 			}
 
-			var path = new Stack<ParsedCell>();
-			if (HasCycleWithNode(path, new HashSet<ParsedCell>(), targetCell, targetCell)) {
-				GlobalRefresh();
-			}
+			GlobalRefresh();
+			return;
+
+			//var path = new Stack<ParsedCell>();
+			//if (HasCycleWithNode(path, new HashSet<ParsedCell>(), targetCell, targetCell)) {
+			//	GlobalRefresh();
+			//}
 			
-			if (!targetCell.Calculable) {
-				Debug.Assert(cellCoords.ContainsKey(targetCell));
-				SpreadErrorFromCell(targetCell, cellCoords[targetCell]);
-			} else {
-				ListenToChildsErrors(targetCell);
+			//if (!targetCell.Calculable) {
+			//	Debug.Assert(cellCoords.ContainsKey(targetCell));
+			//	SpreadErrorFromCell(targetCell, cellCoords[targetCell]);
+			//} else {
+			//	ListenToChildsErrors(targetCell);
+			//}
+		}
+
+		#region Calculating
+		private void CalculateGrid () {
+			var childDictionary = new Dictionary<GridCoordinates, object>();
+			var unvisited = new HashSet<ParsedCell>(cellGraph.Keys.Where((cell) => cell.Calculable));
+
+			while (unvisited.Count > 0) {
+				ParsedCell targetCell = null;
+				foreach (var cell in unvisited) { targetCell = cell; break; }
+
+				TryCalculateCell(unvisited, childDictionary, targetCell);
 			}
 		}
 
+		private bool TryCalculateCell (HashSet<ParsedCell> unvisited, Dictionary<GridCoordinates, object> calculated, ParsedCell curCell) {
+			unvisited.Remove(curCell);
+
+			bool success = true;
+			foreach (GridCoordinates childCoords in curCell.ChildCells) {
+				if (calculated.ContainsKey(childCoords)) continue;
+				var childCell = FromCoords(childCoords);
+
+				if (childCell == null) {
+					calculated.Add(childCoords, (Decimal)0);
+				}
+
+				if (unvisited.Contains(childCell)) {
+					success &= TryCalculateCell(unvisited, calculated, childCell);
+				}
+			}
+
+			if (success) {
+				var result = curCell.Calculate(calculated);
+				calculated.Add(curCell.Coordinates, curCell.Value);
+				return result;
+			}
+
+			return false;
+		}
+
+		private ParsedCell FromCoords (GridCoordinates coords) {
+			(int x, int y) = coords.GetNumericCoords();
+			if (Height <= y || Width <= x || x < 0 || y < 0) {
+				return null;
+			}
+
+			var resultCell = Cells[y][x] as ParsedCell;
+			if (!cellCoords.ContainsKey(resultCell)) {
+				cellCoords.Add(resultCell, coords);
+			}
+
+			return resultCell;
+		}
+
+		#endregion
+
+		#region Error Spreading
 		private void ReleafeCalculatingErrors () {
 			foreach (var cell in cellGraph.Keys) {
 				cell.ErrorMessage = cell.ParseErrorMessage;
@@ -124,11 +189,11 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 		private void SubscribeToChildError (HashSet<ParsedCell> visited, HashSet<ParsedCell> children, ParsedCell initListener) {
 			foreach (var child in children) {
-				if (visited.Contains(child) || !cellCoords.ContainsKey(child)) continue;
+				if (visited.Contains(child)) continue;
 				visited.Add(child);
 
 				if (child.HasError) {
-					var childCords = cellCoords[child];
+					var childCords = child.Coordinates;
 					if (!spreadErrorListeners.ContainsKey(childCords)) {
 						spreadErrorListeners.Add(childCords, new HashSet<ParsedCell>());
 					}
@@ -141,6 +206,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 				}
 			}
 		}
+		#endregion
 
 		#region Cycle detection
 		private void FindGraphCycles (out List<Stack<ParsedCell>> cycles) {
@@ -195,12 +261,8 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 			for (int i = 0; i < pathList.Count; i++) {
 				var cell = pathList[(shift + pathList.Count - i) % pathList.Count];
-				if (cellCoords.ContainsKey(cell)) {
-					(string x, string y) = cellCoords[cell].GetStringCoords();
-					sb.Append($"{x}{y} ");
-				} else {
-					sb.Append("???? ");
-				}
+				(string x, string y) = cell.Coordinates.GetStringCoords();
+				sb.Append($"{x}{y} ");
 			}
 			return sb.ToString();
 		}

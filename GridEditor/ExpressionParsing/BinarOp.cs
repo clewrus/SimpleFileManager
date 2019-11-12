@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleFM.GridEditor.GridRepresentation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,11 @@ namespace SimpleFM.GridEditor.ExpressionParsing {
 			if (!error.IsEmpty) return;
 
 			RightOpRand.Validate(out error);
+		}
+
+		public override object GetValue (Dictionary<GridCoordinates, object> childCells, out ParserError error) {
+			error = ParserError.Empty;
+			return null;
 		}
 
 		public override string ToString () {

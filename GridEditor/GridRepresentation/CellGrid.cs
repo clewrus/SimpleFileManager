@@ -49,10 +49,10 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			GridStructureChanged?.Invoke(this, new EventArgs());
 		}
 
-		protected abstract Cell CreateCell ();
+		protected abstract Cell CreateCell (GridCoordinates coords);
 
-		private void AddNewCellToList (IList<Cell> targetList) {
-			var nwCell = CreateCell();
+		private void AddNewCellToList (IList<Cell> targetList, GridCoordinates coords) {
+			var nwCell = CreateCell(coords);
 			nwCell.ChangedByUser += CellChangedByUserHandler;
 
 			targetList.Add(nwCell);
@@ -311,7 +311,7 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 			for (int i = 0; i < nwHeight - initH; i++) {
 				var nwRow = new ObservableCollection<Cell>();
 				for (int j = 0; j < Width; j++) {
-					AddNewCellToList(nwRow);
+					AddNewCellToList(nwRow, new GridCoordinates(j, Cells.Count));
 				}
 
 				Cells.Add(nwRow);
@@ -329,11 +329,12 @@ namespace SimpleFM.GridEditor.GridRepresentation {
 
 		private void ChangeCellsWidth (int nwWidth) {
 			int initW = Width;
-			foreach (var row in Cells) {
+			for (int y = 0; y < Height; y++) {
+				var row = Cells[y];
 				Debug.Assert(row.Count == initW);
 
 				for (int i = 0; i < nwWidth - initW; i++) {
-					AddNewCellToList(row);
+					AddNewCellToList(row, new GridCoordinates(row.Count, y));
 				}
 
 				for (int i = 0; i < initW - nwWidth; i++) {
