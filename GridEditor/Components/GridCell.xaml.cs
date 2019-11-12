@@ -154,6 +154,21 @@ namespace SimpleFM.GridEditor.Components {
 
 		public event EventHandler<GridCellInteractionEventArgs> GridCellInteraction;
 
+		private bool _IsIncluded;
+		public bool IsIncluded {
+			get => _IsIncluded;
+			set {
+				_IsIncluded = value;
+				if (!IsPointed && !IsSelected && !IsEditable) {
+					if (IsIncluded) {
+						SetBorderStyle(includedStyle);
+					} else {
+						SetBorderStyle(defaultStyle);
+					}
+				}
+			}
+		}
+
 		private bool _IsPointed;
 		public bool IsPointed {
 			get => _IsPointed;
@@ -167,6 +182,9 @@ namespace SimpleFM.GridEditor.Components {
 				}
 
 				_IsPointed = value;
+				if (!IsPointed && IsIncluded) {
+					IsIncluded = IsIncluded;
+				}
 			}
 		}
 
@@ -182,6 +200,9 @@ namespace SimpleFM.GridEditor.Components {
 				}
 
 				_IsSelected = value;
+				if (!IsSelected && IsIncluded) {
+					IsIncluded = IsIncluded;
+				}
 			}
 		}
 
@@ -203,6 +224,9 @@ namespace SimpleFM.GridEditor.Components {
 				}
 
 				_IsEditable = value;
+				if (!IsEditable && IsIncluded) {
+					IsIncluded = IsIncluded;
+				}
 			}
 		}
 
@@ -232,5 +256,6 @@ namespace SimpleFM.GridEditor.Components {
 		private readonly BorderStyle selectedStyle = new BorderStyle() { thikness = new Thickness(3), brush = new SolidColorBrush(Colors.DarkOrange) };
 		private readonly BorderStyle editableStyle = new BorderStyle() { thikness = new Thickness(3), brush = new SolidColorBrush(Colors.DarkRed) };
 		private readonly BorderStyle pointedStyle = new BorderStyle() { thikness = new Thickness(3), brush = new SolidColorBrush(Colors.YellowGreen) };
+		private readonly BorderStyle includedStyle = new BorderStyle() { thikness = new Thickness(3), brush = new SolidColorBrush(Colors.Blue) };
 	}
 }

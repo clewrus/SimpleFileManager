@@ -59,6 +59,7 @@
 
 		<ContextMenu x:Key="DirectoryInspectorContextMenu">
 			<MenuItem Header="Open in SFMTextEditor" Style="{StaticResource VisibleIfEnabled}" Command="{Binding OpenInSFMTextEditor}" CommandParameter="{Binding SelectedItem, Source={x:Reference DirectoryInspector}}"/>
+			<MenuItem Header="Open in GridEditor" Style="{StaticResource VisibleIfEnabled}" Command="{Binding OpenInSFMGridEditor}" CommandParameter="{Binding SelectedItem, Source={x:Reference DirectoryInspector}}"/>
 			<MenuItem Header="Update" Style="{StaticResource VisibleIfEnabled}" Command="{Binding UpdateCommand}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>
 			<Separator/>
 			<MenuItem Header="Create folder" Style="{StaticResource VisibleIfEnabled}" Command="{Binding CreateFolder}" CommandParameter="{Binding SelectedItems, Source={x:Reference DirectoryInspector}}"/>

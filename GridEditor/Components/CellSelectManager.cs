@@ -1,4 +1,5 @@
-﻿using SimpleFM.GridEditor.GridRepresentation;
+﻿using SimpleFM.GridEditor.ExpressionParsing;
+using SimpleFM.GridEditor.GridRepresentation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,6 +16,7 @@ namespace SimpleFM.GridEditor.Components {
 	public class CellSelectManager {
 		public CellSelectManager () {
 			watchedCells = new Dictionary<GridCoordinates, GridCell>();
+			includedCells = new HashSet<GridCell>();
 		}
 
 		public class SelectedCellChangedEventArgs : EventArgs {
@@ -105,7 +107,9 @@ namespace SimpleFM.GridEditor.Components {
 
 		private void ExpressionTextBoxChangedHandler (object sender, TextChangedEventArgs e) {
 			if (sender != ExpressionTextBox) return;
-			
+
+			UpdateIncludedCells(ExpressionTextBox.Text);
+
 			if (!settingPointedCell) {
 				resentlyPointed = false;
 			}
@@ -150,6 +154,24 @@ namespace SimpleFM.GridEditor.Components {
 			}
 		}
 		#endregion
+
+		private void UpdateIncludedCells (string text) {
+			foreach (var cell in includedCells) {
+				cell.IsIncluded = false;
+			}
+			includedCells.Clear();
+
+			var tokens = Tokenizer.Instance.TokenizeString(text);
+			if (tokens.Count > 0 && tokens.First.Value is OperationToken opToken && opToken.Value == OperationToken.Operation.FormulaSign) {
+				foreach (var token in tokens) {
+					if (token is CellNameToken cellToken && watchedCells.ContainsKey(cellToken.Value)) {
+						var curCell = watchedCells[cellToken.Value];
+						curCell.IsIncluded = true;
+						includedCells.Add(curCell);
+					}
+				}
+			}
+		}
 
 		private void UpdateBinding () {
 			if (ExpressionTextBox == null || SelectedCell == null) return;
@@ -437,5 +459,6 @@ namespace SimpleFM.GridEditor.Components {
 		private bool settingPointedCell;
 
 		private Dictionary<GridCoordinates, GridCell> watchedCells;
+		private HashSet<GridCell> includedCells;
 	}
 }

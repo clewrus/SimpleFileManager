@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SimpleFM.PageManager"
         mc:Ignorable="d"
-        Title="{Binding WindowName, Mode=TwoWay}" Height="450" Width="800">
+        Title="{Binding WindowName, Mode=TwoWay}" Height="585" Width="1040">
 	<Grid>
 		<Frame Content="{Binding SourcePage, Mode=TwoWay}"/>
 	</Grid>

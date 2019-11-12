@@ -19,6 +19,7 @@ using SimpleFM.PageManager;
 using SimpleFM.Common.ViewModels;
 using SimpleFM.FileManager.ModelCovers;
 using SimpleFM.TextEditor.Pages;
+using SimpleFM.GridEditor.Pages;
 
 namespace SimpleFM.FileManager.ViewModels {
 	public class FileManagerViewModel : ViewModelBase, INotifyPropertyChanged, IDisposable {
@@ -244,6 +245,30 @@ namespace SimpleFM.FileManager.ViewModels {
 				},
 
 				(arg) =>  arg is FileTreeNode targetNode && targetNode.Value != null && targetNode.Value is SFMFile
+			);
+		}
+
+		public ICommand OpenInSFMGridEditor {
+			get => new ViewModelCommand(
+				(arg) => {
+					if (arg is FileTreeNode targetNode && targetNode.Value != null && targetNode.Value is SFMFile selectedFile) {
+						string fileName = selectedFile.ElementName;
+						int lastPoint = fileName.LastIndexOf('.');
+
+						if (lastPoint != -1 && fileName.Substring(lastPoint) == ".sfmgrid") {
+							PageBoundManager.Instance.CreatePageInNewWindow<GridEditorPage>("Grid editor", selectedFile);
+						}
+					}
+				},
+				(arg) => {
+					if (arg is FileTreeNode targetNode && targetNode.Value != null && targetNode.Value is SFMFile selectedFile) {
+						string fileName = selectedFile.ElementName;
+						int lastPoint = fileName.LastIndexOf('.');
+
+						return lastPoint != -1 && fileName.Substring(lastPoint) == ".sfmgrid";
+					}
+					return false;
+				}
 			);
 		}
 
